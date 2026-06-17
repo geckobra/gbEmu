@@ -31,9 +31,22 @@ static int execute(uint8_t opcode){
         break;
 
         case 0x01:
-            //copy the value pointed to by regA into regHL
-            cpu_registers.hl = read_memory(cpu_registers.a);
+            //load n16 value into BC register
+            uint8_t val_h = fetch(cpu_registers.pc++);
+            uint8_t val_l = fetch(cpu_registers.pc++);
+
+            cpu_registers.bc = ((uint16_t)val_h<<8) | val_l; //load the value into the bc register
+
+            executed_t_ticks = 12;
+
+            break;
+
+        case 0x02:
+            //load the value stored in A at the memory pointed to by BC
+            write_memory(cpu_registers.bc, cpu_registers.a);
+
             executed_t_ticks = 8;
+
             break;
 
         case 0x06:
@@ -43,12 +56,26 @@ static int execute(uint8_t opcode){
             cpu_registers.b = value;
             
             executed_t_ticks = 8;
-        break;
+            break;
 
         case 0x0A:
+            //load in regA the value stored at WRAM[BC]
             cpu_registers.a = read_memory(cpu_registers.bc);
             executed_t_ticks = 8;
-        break;
+            break;
+
+        case 0x0E:
+            //load an 8 bit value in regC
+            uint8_t value = read_memory(cpu_registers.pc++);
+            cpu_registers.c = value;
+            executed_t_ticks = 8;
+            break;
+
+        case 0x12:
+            //load in WRAM[DE] the value stored at regA
+            write_memory(cpu_registers.de, cpu_registers.a);
+            executed_t_ticks = 8;
+            break;
     }
 
     return executed_t_ticks;
