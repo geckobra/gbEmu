@@ -12,7 +12,7 @@ typedef struct{
     union { struct { uint8_t l; uint8_t h;}; uint16_t hl;};
 
     uint16_t pc;
-    uint16_t st;
+    uint16_t sp;
 } sm83_registers_t;
 
 extern sm83_registers_t cpu_registers;
