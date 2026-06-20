@@ -13,18 +13,19 @@ int execute(uint8_t opcode){
             executed_t_ticks = 4;
         break;
 
-        case 0x01:
+        case 0x01:{
             //load n16 value into BC register
 
             //get the value from the instruction. Little-Endian so Low byte is first
-            uint8_t val_l = fetch(cpu_registers.pc++);
-            uint8_t val_h = fetch(cpu_registers.pc++);
+            uint8_t val_l = fetch();
+            uint8_t val_h = fetch();
 
             cpu_registers.bc = ((uint16_t)val_h<<8) | val_l; //load the value into the bc register
 
             executed_t_ticks = 12;
 
             break;
+        }
 
         case 0x02:
             //load the value stored in A at the memory pointed to by BC
@@ -35,13 +36,29 @@ int execute(uint8_t opcode){
             break;
 
         case 0x06:
-            value = read_memory(cpu_registers.pc++);
+            //load n8 value into regB
+            value = fetch();
             printf("Load %d into B\n", value);
 
             cpu_registers.b = value;
             
             executed_t_ticks = 8;
             break;
+
+        case 0x08: {
+            //load the stack pointer at WRAM[n16]
+            uint8_t l_val = fetch();
+            uint8_t h_val = fetch();
+            uint16_t address = ((uint16_t)h_val<<8) | l_val;
+
+            uint8_t sp_h = (cpu_registers.sp >> 8) & 0xFF;
+            uint8_t sp_l = (cpu_registers.sp) & 0x00FF;
+
+            write_memory(address, sp_l);
+            write_memory(address+1, sp_h);
+            executed_t_ticks = 20;
+            break;
+        }
 
         case 0x0A:
             //load in regA the value stored at WRAM[BC]
@@ -51,10 +68,20 @@ int execute(uint8_t opcode){
 
         case 0x0E:
             //load an 8 bit value in regC
-            value = read_memory(cpu_registers.pc++);
+            value = fetch();
             cpu_registers.c = value;
             executed_t_ticks = 8;
             break;
+
+        case 0x11:{
+            //load n16 value into regDE
+            uint8_t l_val = fetch();
+            uint8_t h_val = fetch();
+            uint16_t val = ((uint16_t)h_val<<8) | l_val;
+            cpu_registers.de = val;
+            executed_t_ticks = 12;
+            break;
+        }
 
         case 0x12:
             //load in WRAM[DE] the value stored at regA
@@ -64,7 +91,7 @@ int execute(uint8_t opcode){
 
         case 0x16:
             //load an 8 bit value in regD
-            value = read_memory(cpu_registers.pc++);
+            value = fetch();
             cpu_registers.d = value;
             executed_t_ticks = 8;
             break;
@@ -77,11 +104,77 @@ int execute(uint8_t opcode){
 
         case 0x1E:
             //load 8 bit value into regE
-            value = read_memory(cpu_registers.pc++);
+            value = fetch();
             cpu_registers.e = value;
             executed_t_ticks = 8;
             break;
 
+        case 0x21:{
+            //load n16 value into regHL
+            uint8_t l_val = fetch();
+            uint8_t h_val = fetch();
+            uint16_t val = ((uint16_t)h_val<<8) | l_val;
+            cpu_registers.hl = val;
+            executed_t_ticks = 12;
+            break;
+        }
+
+        case 0x22:
+            //load regA into WRAM[HL] and increment HL by 1
+            write_memory(cpu_registers.hl, cpu_registers.a);
+            cpu_registers.hl++;
+            executed_t_ticks = 8;
+            break;
+
+        case 0x26:
+            //load n8 value into regH
+            value = fetch();
+            cpu_registers.h = value;
+            executed_t_ticks = 8;
+            break;
+
+        case 0x2A:
+            //load WRAM[regHL] into regA and increment regHL by 1
+            cpu_registers.a = read_memory(cpu_registers.hl);
+            cpu_registers.hl++;
+            executed_t_ticks = 8;
+            break;
+
+        case 0x2E:
+            //load n8 value into regL
+            value = fetch();
+            cpu_registers.l = value;
+            executed_t_ticks = 8;
+            break;
+
+        case 0x32:
+            //load regA into WRAM[regHL] and decrement HL by 1
+            write_memory(cpu_registers.hl, cpu_registers.a);
+            cpu_registers.hl--;
+            executed_t_ticks = 8;
+            break;
+
+        case 0x36:
+            //write n8 value into WRAM[regHL]
+            value = fetch();
+            write_memory(cpu_registers.hl, value);
+            executed_t_ticks  = 12;
+            break;
+
+        case 0x3A:
+            //load value at WRAM[regHL] into regA and decrement HL by 1
+            cpu_registers.a = read_memory(cpu_registers.hl);
+            cpu_registers.hl--;
+            executed_t_ticks = 8;
+            break;
+
+        case 0x3E:
+            //load n8 value into regA
+            value = fetch();
+            cpu_registers.a = value;
+            executed_t_ticks = 8;
+            break;
+    
         case 0x40:
             //load regB into regB
 
@@ -466,7 +559,7 @@ int execute(uint8_t opcode){
 
         case 0xE0: {
             //write the contents of regA to HIGH WRAM[n8]
-            value = fetch(cpu_registers.pc++); //get the address
+            value = fetch(); //get the address
 
             //the address is encoded as the 8-bit low byte and assumes high byte of $FF
             uint16_t address = 0xFF00;
@@ -489,8 +582,8 @@ int execute(uint8_t opcode){
 
         case 0xEA:{
             //write the contents of regA to WRAM[n16]
-            uint8_t l_val = read_memory(cpu_registers.pc++);
-            uint8_t h_val = read_memory(cpu_registers.pc++);
+            uint8_t l_val = fetch();
+            uint8_t h_val = fetch();
             uint16_t res_address = ((uint16_t)h_val << 8) | l_val;
             write_memory(res_address, cpu_registers.a);
             executed_t_ticks = 16;
@@ -499,7 +592,7 @@ int execute(uint8_t opcode){
 
         case 0xF0: {
             //load the contents at HIGH WRAM[n8] into regA
-            value = fetch(cpu_registers.pc++);
+            value = fetch();
             uint16_t address = 0xFF00;
             address = address | (uint16_t)value;
             cpu_registers.a = read_memory(address);
@@ -518,8 +611,8 @@ int execute(uint8_t opcode){
 
         case 0xFA:{
             //load the contents at WRAM[n16] into regA
-            uint8_t l_val = fetch(cpu_registers.pc++);
-            uint8_t h_val = fetch(cpu_registers.pc++);
+            uint8_t l_val = fetch();
+            uint8_t h_val = fetch();
             uint16_t address = ((uint16_t)h_val<<8) | l_val;
             cpu_registers.a = read_memory(address);
 

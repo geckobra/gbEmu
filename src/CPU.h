@@ -21,4 +21,4 @@ extern bool isHalted;
 void cpu_init();
 void run_cpu();
 int execute(uint8_t);
-uint8_t fetch(uint16_t);
+uint8_t fetch();

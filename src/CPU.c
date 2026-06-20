@@ -15,7 +15,7 @@ void cpu_init(){
 }
 
 //fetches the next instruction from WRAM memory
-uint8_t fetch(uint16_t pc){
+uint8_t fetch(){
     return read_memory(cpu_registers.pc++);
 }
 
@@ -26,7 +26,7 @@ void run_cpu(){
     if (isHalted){
         t_cycles_executed = 4;
     } else{
-        next_instruction = fetch(cpu_registers.pc);
+        next_instruction = fetch();
         t_cycles_executed = execute(next_instruction);
     }
     
