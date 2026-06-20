@@ -23,7 +23,7 @@ void run_cpu(){
     int t_cycles_executed = 0;
 
     //if the cpu is halted, don't fetch next instruction
-    if (!isHalted){
+    if (isHalted){
         t_cycles_executed = 4;
     } else{
         next_instruction = fetch(cpu_registers.pc);
