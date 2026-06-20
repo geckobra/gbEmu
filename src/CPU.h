@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <stdbool.h>
 
 typedef struct{
     union { struct { uint8_t f; uint8_t a;}; uint16_t af;};
@@ -14,5 +15,10 @@ typedef struct{
     uint16_t st;
 } sm83_registers_t;
 
+extern sm83_registers_t cpu_registers;
+extern bool isHalted;
+
 void cpu_init();
 void run_cpu();
+int execute(uint8_t);
+uint8_t fetch(uint16_t);
