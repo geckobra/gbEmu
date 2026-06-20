@@ -147,6 +147,16 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
 
+        case 0x31:{
+            //load n16 value into SP
+            uint8_t l_val = fetch();
+            uint8_t h_val = fetch();
+            uint16_t val = ((uint16_t)h_val<<8) | l_val;
+            cpu_registers.sp = val;
+            executed_t_ticks = 12;
+            break;
+        }
+
         case 0x32:
             //load regA into WRAM[regHL] and decrement HL by 1
             write_memory(cpu_registers.hl, cpu_registers.a);
@@ -609,6 +619,22 @@ int execute(uint8_t opcode){
             break;
         }
 
+        case 0xF8:{
+            //TODO: Implement check for H and C flags
+
+            //load SP + e8 into regHL
+            int8_t val = (int8_t)fetch();
+            cpu_registers.hl = (cpu_registers.sp + (int16_t)val);
+            executed_t_ticks = 12;
+            break;
+        }
+
+        case 0xF9:
+            //load the contents of regHL into SP
+            cpu_registers.sp = cpu_registers.hl;
+            executed_t_ticks = 8;
+            break;
+        
         case 0xFA:{
             //load the contents at WRAM[n16] into regA
             uint8_t l_val = fetch();
