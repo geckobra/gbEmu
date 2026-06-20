@@ -463,6 +463,70 @@ int execute(uint8_t opcode){
             //load the contents of regA into regA
             executed_t_ticks = 4;
             break;
+
+        case 0xE0: {
+            //write the contents of regA to HIGH WRAM[n8]
+            value = fetch(cpu_registers.pc++); //get the address
+
+            //the address is encoded as the 8-bit low byte and assumes high byte of $FF
+            uint16_t address = 0xFF00;
+            address = address | (uint16_t)value;
+
+            write_memory(address, cpu_registers.a);
+            executed_t_ticks = 12;
+            break;
+        }
+
+        case 0xE2: {
+            //write the contents of regA to HIGH WRAM[regC]
+            uint16_t address = 0xFF00;
+            address = address | (uint16_t)cpu_registers.c;
+
+            write_memory(address, cpu_registers.a);
+            executed_t_ticks = 8;
+            break;
+        }
+
+        case 0xEA:{
+            //write the contents of regA to WRAM[n16]
+            uint8_t l_val = read_memory(cpu_registers.pc++);
+            uint8_t h_val = read_memory(cpu_registers.pc++);
+            uint16_t res_address = ((uint16_t)h_val << 8) | l_val;
+            write_memory(res_address, cpu_registers.a);
+            executed_t_ticks = 16;
+            break;
+        }
+
+        case 0xF0: {
+            //load the contents at HIGH WRAM[n8] into regA
+            value = fetch(cpu_registers.pc++);
+            uint16_t address = 0xFF00;
+            address = address | (uint16_t)value;
+            cpu_registers.a = read_memory(address);
+            executed_t_ticks = 12;
+            break;
+        }
+
+        case 0xF2: {
+            //load the contents at HIGH WRAM[regC] into regA
+            uint16_t address = 0xFF00;
+            address = address | (uint16_t)cpu_registers.c;
+            cpu_registers.a = read_memory(address);
+            executed_t_ticks = 8;
+            break;
+        }
+
+        case 0xFA:{
+            //load the contents at WRAM[n16] into regA
+            uint8_t l_val = fetch(cpu_registers.pc++);
+            uint8_t h_val = fetch(cpu_registers.pc++);
+            uint16_t address = ((uint16_t)h_val<<8) | l_val;
+            cpu_registers.a = read_memory(address);
+
+            executed_t_ticks = 16;
+            break;
+        }
+
     }
 
     return executed_t_ticks;
