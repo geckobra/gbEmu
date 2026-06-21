@@ -56,7 +56,7 @@ uint8_t alu_adc8(uint8_t val){
     uint8_t flags_mask = 0x0;
     uint8_t a_val = cpu_registers.a;
 
-    uint8_t carry_flag = cpu_registers.a & 1<<4;
+    uint8_t carry_flag = (cpu_registers.f & (1<<4)) ? 1 : 0;
 
     uint16_t result = (uint16_t)a_val + (uint16_t)val + carry_flag;
 
@@ -64,5 +64,21 @@ uint8_t alu_adc8(uint8_t val){
     if ((a_val & 0x0F) + (val & 0x0F) + carry_flag > 0x0F)  flags_mask |= 1 << 5; //set half-carry flag
     if (result > 0xFF)                                      flags_mask |= 1 << 4; //set carry flag
 
+    cpu_registers.f = flags_mask;
     return (uint8_t)result;
-} 
+}
+
+uint8_t inc_r8(uint8_t reg){
+
+    uint8_t flags_mask = 0x0;
+    uint8_t result = reg+1;
+
+    if (result == 0) flags_mask |= 1 << 7;
+    if ((result & 0x0F) > 0x0F) flags_mask |= 1 << 5;
+
+    flags_mask |= (cpu_registers.f & (1 << 4)); //carry flag shouldn't be affected by the operation
+
+    cpu_registers.f = flags_mask;
+    
+    return result;
+}

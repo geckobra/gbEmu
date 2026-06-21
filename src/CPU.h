@@ -21,6 +21,8 @@ extern bool isHalted;
 //ALU HELPER FUNCTIONS
 uint8_t alu_add8(uint8_t); //performs addition to the accumulation register and sets corresponding flags
 uint8_t alu_adc8(uint8_t); //performs addition with carry to the accumulation register and sets corresponding flags
+uint8_t    inc_r8(uint8_t*);
+uint8_t    inc_r16(uint16_t*);
 
 void cpu_init();
 void run_cpu();
