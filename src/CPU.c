@@ -34,7 +34,7 @@ void run_cpu(){
 }
 
 uint8_t alu_add8(uint8_t val){
-    //performs addition to the accumulator and sets corresponding flags
+    //performs addition to the accumulator register and sets corresponding flags
 
     uint8_t flags_mask = 0x0; //create empty flag mask (Z, N, H, C)
     uint8_t a_val = cpu_registers.a;
@@ -49,3 +49,20 @@ uint8_t alu_add8(uint8_t val){
 
     return (uint8_t)result;
 }
+
+uint8_t alu_adc8(uint8_t val){
+    //performs addition with carry to the accumulator register and sets corresponding flags
+
+    uint8_t flags_mask = 0x0;
+    uint8_t a_val = cpu_registers.a;
+
+    uint8_t carry_flag = cpu_registers.a & 1<<4;
+
+    uint16_t result = (uint16_t)a_val + (uint16_t)val + carry_flag;
+
+    if ((uint8_t)result == 0)                               flags_mask |= 1 << 7; //set zero flag
+    if ((a_val & 0x0F) + (val & 0x0F) + carry_flag > 0x0F)  flags_mask |= 1 << 5; //set half-carry flag
+    if (result > 0xFF)                                      flags_mask |= 1 << 4; //set carry flag
+
+    return (uint8_t)result;
+} 
