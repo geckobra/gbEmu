@@ -908,7 +908,7 @@ int execute(uint8_t opcode){
             executed_t_ticks = 4;
             break;
 
-        case 0x96:
+        case 0x96:{
             //substract contents of WRAM[regHL] from regA
             uint8_t value = read_memory(cpu_registers.hl);
             value = alu_sub8(value);
@@ -916,6 +916,7 @@ int execute(uint8_t opcode){
 
             executed_t_ticks = 8;
             break;
+        }
 
         case 0x97:
             //susbtract contents of regA from regA
@@ -966,7 +967,7 @@ int execute(uint8_t opcode){
             executed_t_ticks = 4;
             break;
 
-        case 0x9E:
+        case 0x9E:{
             //substract with carry the contents of WRAM[regHL] from regA
             uint8_t value = read_memory(cpu_registers.hl);
             value = alu_subc8(value);
@@ -974,6 +975,7 @@ int execute(uint8_t opcode){
 
             executed_t_ticks = 8;
             break;
+        }
 
         case 0x9F:
             //substract with carry the contents of regA from regA
