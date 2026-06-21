@@ -21,6 +21,8 @@ extern bool isHalted;
 //ALU HELPER FUNCTIONS
 uint8_t alu_add8(uint8_t); //performs addition to the accumulation register and sets corresponding flags
 uint8_t alu_adc8(uint8_t); //performs addition with carry to the accumulation register and sets corresponding flags
+uint8_t alu_sub8(uint8_t); //performs substraction to the accumulation register and sets corresopnding flags
+uint8_t alu_subc8(uint8_t); //performs substraction with carry to the accumulation register and seets corresponding flags
 uint8_t    inc_r8(uint8_t*);
 uint8_t    inc_r16(uint16_t*);
 
