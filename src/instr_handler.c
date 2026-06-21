@@ -701,6 +701,102 @@ int execute(uint8_t opcode){
             break;
         }
 
+        case 0x80:
+            //add contents of regB to regA
+            cpu_registers.a = alu_add8(cpu_registers.b);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x81:
+            //add contents of regC to regA
+            cpu_registers.a = alu_add8(cpu_registers.c);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x82:
+            //add contents of regD to regA
+            cpu_registers.a = alu_add8(cpu_registers.d);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x83:
+            //add contents of regE to regA
+            cpu_registers.a = alu_add8(cpu_registers.e);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x84:
+            //add contents of regH to regA
+            cpu_registers.a = alu_add8(cpu_registers.h);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x85:
+            //add contents of regL to regA
+            cpu_registers.a = alu_add8(cpu_registers.l);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x86:
+            //add contents of WRAM[regHL] to regA
+            cpu_registers.a = alu_add8(read_memory(cpu_registers.hl));
+            executed_t_ticks = 8;
+            break;
+
+        case 0x87:
+            //add contents of regA to regA
+            cpu_registers.a = alu_add8(cpu_registers.a);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x88:
+            //add contents of regB to regA with carry
+            cpu_registers.a = alu_adc8(cpu_registers.b);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x89:
+            //add contents of regC to regA with carry
+            cpu_registers.a = alu_adc8(cpu_registers.c);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x8A:
+            //add contents of regD to regA with carry
+            cpu_registers.a = alu_adc8(cpu_registers.d);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x8B:
+            //add contents of regE to regA with carry
+            cpu_registers.a = alu_adc8(cpu_registers.e);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x8C:
+            //add contents of regH to regA with carry
+            cpu_registers.a = alu_adc8(cpu_registers.h),
+            executed_t_ticks = 4;
+            break;
+
+        case 0x8D:
+            //add contents of regL to regA with carry
+            cpu_registers.a = alu_adc8(cpu_registers.l);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x8E:
+            //add contents of WRAM[regHL] to regA
+            cpu_registers.a = alu_adc8(read_memory(cpu_registers.hl));
+            executed_t_ticks = 8;
+            break;
+
+        case 0x8F:
+            //add contents of regA to regA with carry
+            cpu_registers.a = alu_adc8(cpu_registers.a);
+            executed_t_ticks = 4;
+            break;
+
         case 0xF9:
             //load the contents of regHL into SP
             cpu_registers.sp = cpu_registers.hl;
