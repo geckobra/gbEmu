@@ -18,6 +18,9 @@ typedef struct{
 extern sm83_registers_t cpu_registers;
 extern bool isHalted;
 
+//ALU HELPER FUNCTIONS
+uint8_t alu_add8(uint8_t val); //performs addition to the accumulation and sets corresponding flags
+
 void cpu_init();
 void run_cpu();
 int execute(uint8_t);
