@@ -567,6 +567,42 @@ int execute(uint8_t opcode){
             executed_t_ticks = 4;
             break;
 
+        case 0xC1:
+            //POP 16 bits from the stack and store at BC
+            cpu_registers.c = read_memory(cpu_registers.sp++);
+            cpu_registers.b = read_memory(cpu_registers.sp++); //INC SP so it points to the top of the stack
+
+            executed_t_ticks = 12;
+            break;
+
+        case 0xC5:
+            //PUSH regBC into the stack
+            cpu_registers.sp--;
+            write_memory(cpu_registers.sp, cpu_registers.b); //write high byte first
+            cpu_registers.sp--;
+            write_memory(cpu_registers.sp, cpu_registers.c); //write low byte second, Little-Endian
+
+            executed_t_ticks = 16;
+            break;
+
+        case 0xD1:
+            //POP 16 bits from the stack and store at DE
+            cpu_registers.e = read_memory(cpu_registers.sp++);
+            cpu_registers.d = read_memory(cpu_registers.sp++);
+
+            executed_t_ticks = 12;
+            break;
+
+        case 0xD5:
+            //PUSH regDE into the stack
+            cpu_registers.sp--;
+            write_memory(cpu_registers.sp, cpu_registers.d);
+            cpu_registers.sp--;
+            write_memory(cpu_registers.sp, cpu_registers.e);
+
+            executed_t_ticks = 16;
+            break;
+
         case 0xE0: {
             //write the contents of regA to HIGH WRAM[n8]
             value = fetch(); //get the address
@@ -580,6 +616,14 @@ int execute(uint8_t opcode){
             break;
         }
 
+        case 0xE1:
+            //POP 16 bits from stack and store them at HL
+            cpu_registers.l = read_memory(cpu_registers.sp++);
+            cpu_registers.h = read_memory(cpu_registers.sp++);
+
+            executed_t_ticks = 12;
+            break;
+
         case 0xE2: {
             //write the contents of regA to HIGH WRAM[regC]
             uint16_t address = 0xFF00;
@@ -589,6 +633,16 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
         }
+
+        case 0xE5:
+            //PUSH regHL into the stack
+            cpu_registers.sp--;
+            write_memory(cpu_registers.sp, cpu_registers.h);
+            cpu_registers.sp--;
+            write_memory(cpu_registers.sp, cpu_registers.l);
+
+            executed_t_ticks = 16;
+            break;
 
         case 0xEA:{
             //write the contents of regA to WRAM[n16]
@@ -610,6 +664,14 @@ int execute(uint8_t opcode){
             break;
         }
 
+        case 0xF1:
+            //POP regAF from the stack
+            cpu_registers.f = read_memory(cpu_registers.sp++) & 0xF0;
+            cpu_registers.a = read_memory(cpu_registers.sp++);
+
+            executed_t_ticks = 12;
+            break;
+
         case 0xF2: {
             //load the contents at HIGH WRAM[regC] into regA
             uint16_t address = 0xFF00;
@@ -618,6 +680,16 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
         }
+
+        case 0xF5:
+            //PUSH regAF into the stack
+            cpu_registers.sp--;
+            write_memory(cpu_registers.sp, cpu_registers.a);
+            cpu_registers.sp--;
+            write_memory(cpu_registers.sp, cpu_registers.f & 0xF0);
+
+            executed_t_ticks = 16;
+            break;
 
         case 0xF8:{
             //TODO: Implement check for H and C flags
