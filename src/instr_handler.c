@@ -35,6 +35,18 @@ int execute(uint8_t opcode){
 
             break;
 
+        case 0x03:
+            //increment BC register
+            cpu_registers.bc++;
+            executed_t_ticks = 8;
+            break;
+
+        case 0x04:
+            //increment B register setting corresponding flags
+            cpu_registers.b = inc_r8(cpu_registers.b);
+            executed_t_ticks = 4;
+            break;
+
         case 0x06:
             //load n8 value into regB
             value = fetch();
@@ -66,6 +78,12 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
 
+        case 0x0C:
+            //increment regC and set corresponding flags
+            cpu_registers.c = inc_r8(cpu_registers.c);
+            executed_t_ticks = 4;
+            break;
+
         case 0x0E:
             //load an 8 bit value in regC
             value = fetch();
@@ -89,6 +107,18 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
 
+        case 0x13:
+            //increment regDE
+            cpu_registers.de++;
+            executed_t_ticks = 8;
+            break;
+
+        case 0x14:
+            //increment regD setting corresponding flags
+            cpu_registers.d = inc_r8(cpu_registers.d);
+            executed_t_ticks = 4;
+            break;
+
         case 0x16:
             //load an 8 bit value in regD
             value = fetch();
@@ -100,6 +130,12 @@ int execute(uint8_t opcode){
             //load value at WRAM[DE] into regA
             cpu_registers.a = read_memory(cpu_registers.de);
             executed_t_ticks = 8;
+            break;
+
+        case 0x1C:
+            //increment regE and set corresponding flags
+            cpu_registers.e = inc_r8(cpu_registers.e);
+            executed_t_ticks = 4;
             break;
 
         case 0x1E:
@@ -126,6 +162,18 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
 
+        case 0x23:
+            //increment HL register
+            cpu_registers.hl++;
+            executed_t_ticks = 8;
+            break;
+
+        case 0x24:
+            //increment regH setting corresponding flags
+            cpu_registers.h = inc_r8(cpu_registers.h);
+            executed_t_ticks = 4;
+            break;
+
         case 0x26:
             //load n8 value into regH
             value = fetch();
@@ -138,6 +186,12 @@ int execute(uint8_t opcode){
             cpu_registers.a = read_memory(cpu_registers.hl);
             cpu_registers.hl++;
             executed_t_ticks = 8;
+            break;
+
+        case 0x2C:
+            //increment regL and set corresponding flags
+            cpu_registers.l = inc_r8(cpu_registers.l);
+            executed_t_ticks = 4;
             break;
 
         case 0x2E:
@@ -164,6 +218,21 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
 
+        case 0x33:
+            //increment regSP
+            cpu_registers.sp++;
+            executed_t_ticks = 8;
+            break;
+
+        case 0x34:
+            //increment WRAM[regHL] and set corresponding flags
+            uint8_t value = read_memory(cpu_registers.hl);
+            value = inc_r8(value);
+            write_memory(cpu_registers.hl, value);
+
+            executed_t_ticks = 12;
+            break;
+
         case 0x36:
             //write n8 value into WRAM[regHL]
             value = fetch();
@@ -176,6 +245,12 @@ int execute(uint8_t opcode){
             cpu_registers.a = read_memory(cpu_registers.hl);
             cpu_registers.hl--;
             executed_t_ticks = 8;
+            break;
+
+        case 0x3C:
+            //increment regA and set corresponding flags
+            cpu_registers.a = inc_r8(cpu_registers.a);
+            executed_t_ticks = 4;
             break;
 
         case 0x3E:
