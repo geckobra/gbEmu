@@ -872,6 +872,116 @@ int execute(uint8_t opcode){
             executed_t_ticks = 4;
             break;
 
+        case 0x90:
+            //substract contents of regB from regA
+            cpu_registers.a = alu_sub8(cpu_registers.b);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x91:
+            //substract contents of regC from regA
+            cpu_registers.a = alu_sub8(cpu_registers.c);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x92:
+            //substract contents of regD from regA
+            cpu_registers.a = alu_sub8(cpu_registers.d);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x93:
+            //substract contents of regE from regA
+            cpu_registers.a = alu_sub8(cpu_registers.e);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x94:
+            //substract contents of regH from regA
+            cpu_registers.a = alu_sub8(cpu_registers.h);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x95:
+            //substract contents of regL from regA
+            cpu_registers.a = alu_sub8(cpu_registers.l);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x96:
+            //substract contents of WRAM[regHL] from regA
+            uint8_t value = read_memory(cpu_registers.hl);
+            value = alu_sub8(value);
+            write_memory(cpu_registers.hl, value);
+
+            executed_t_ticks = 8;
+            break;
+
+        case 0x97:
+            //susbtract contents of regA from regA
+            cpu_registers.a = alu_sub8(cpu_registers.a);
+            
+            executed_t_ticks = 4;
+            break;
+
+        case 0x98:
+            //substract with carry the contents of regB from regA
+            cpu_registers.a = alu_subc8(cpu_registers.b);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0x99:
+            //substract with carry the contents of regC from regA
+            cpu_registers.a = alu_subc8(cpu_registers.c);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0x9A:
+            //substract with carry the contents of regD from regA
+            cpu_registers.a = alu_subc8(cpu_registers.d);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0x9B:
+            //substract with carry the contents of regE from regA
+            cpu_registers.a = alu_subc8(cpu_registers.e);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0x9C:
+            //substract with carry the contents of regH from regA
+            cpu_registers.a = alu_subc8(cpu_registers.h);
+            
+            executed_t_ticks = 4;
+            break;
+
+        case 0x9D:
+            //substract with carry the contents of regL from regA
+            cpu_registers.a = alu_subc8(cpu_registers.l);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0x9E:
+            //substract with carry the contents of WRAM[regHL] from regA
+            uint8_t value = read_memory(cpu_registers.hl);
+            value = alu_subc8(value);
+            write_memory(cpu_registers.hl, value);
+
+            executed_t_ticks = 8;
+            break;
+
+        case 0x9F:
+            //substract with carry the contents of regA from regA
+            cpu_registers.a = alu_subc8(cpu_registers.a);
+
+            executed_t_ticks = 4;
+            break;
+
         case 0xF9:
             //load the contents of regHL into SP
             cpu_registers.sp = cpu_registers.hl;
