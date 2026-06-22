@@ -27,8 +27,9 @@ uint8_t    inc_r8(uint8_t);
 uint8_t    inc_r16(uint16_t);
 
 //BITWISE LOGIC INSTRUCTIONS
-uint8_t and_r8(uint8_t); //set regA to bitwise AND with r8
-
+uint8_t and_r8(uint8_t); //performs regA & r8
+uint8_t or_r8(uint8_t);  //performs regA | r8
+uint8_t xor_r8(uint8_t); //performs regA ^ r8
 
 void cpu_init();
 void run_cpu();

@@ -137,3 +137,30 @@ uint8_t and_r8(uint8_t reg){
     
     return result;
 }
+
+uint8_t or_r8(uint8_t reg){
+
+    uint8_t flags_mask = 0x0;
+    uint8_t a_val = cpu_registers.a;
+
+    uint8_t result = a_val | reg;
+
+    if (result == 0) flags_mask |= 1 << 7;
+
+    cpu_registers.f = flags_mask;
+    return result;
+}
+
+uint8_t xor_r8(uint8_t reg){
+    
+    uint8_t flags_mask = 0x0;
+    uint8_t a_val = cpu_registers.a;
+
+    uint8_t result = a_val ^ reg;
+
+    if (result == 0) flags_mask |= 1 << 7;
+
+    cpu_registers.f = flags_mask;
+
+    return result;
+}
