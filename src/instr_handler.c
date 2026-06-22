@@ -912,7 +912,7 @@ int execute(uint8_t opcode){
             //substract contents of WRAM[regHL] from regA
             uint8_t value = read_memory(cpu_registers.hl);
             value = alu_sub8(value);
-            write_memory(cpu_registers.hl, value);
+            cpu_registers.a = value;
 
             executed_t_ticks = 8;
             break;
@@ -970,8 +970,7 @@ int execute(uint8_t opcode){
         case 0x9E:{
             //substract with carry the contents of WRAM[regHL] from regA
             uint8_t value = read_memory(cpu_registers.hl);
-            value = alu_subc8(value);
-            write_memory(cpu_registers.hl, value);
+            cpu_registers.a= alu_subc8(value);
 
             executed_t_ticks = 8;
             break;
@@ -980,6 +979,175 @@ int execute(uint8_t opcode){
         case 0x9F:
             //substract with carry the contents of regA from regA
             cpu_registers.a = alu_subc8(cpu_registers.a);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xA0:
+            //set contents of regA to regA & regB
+            cpu_registers.a = and_r8(cpu_registers.b);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xA1:
+            //set contents of regA to regA & regC
+            cpu_registers.a = and_r8(cpu_registers.c);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xA2:
+            //set contents of regA to regA & regD
+            cpu_registers.a = and_r8(cpu_registers.d);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xA3:
+            //set contents of regA to regA & regE
+            cpu_registers.a = and_r8(cpu_registers.e);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xA4:
+            //set contents of regA to regA & regH
+            cpu_registers.a = and_r8(cpu_registers.h);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xA5:
+            //set contents of regA to regA & regL
+            cpu_registers.a = and_r8(cpu_registers.l);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xA6:
+            //set contents of regA to regA & WRAM[regHL]
+            value = read_memory(cpu_registers.hl);
+            cpu_registers.a = and_r8(value);
+            
+            executed_t_ticks = 8;
+            break;
+
+        case 0xA7:
+            //seet contents of regA to regA & regA
+            cpu_registers.a = and_r8(cpu_registers.a);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xA8:
+            //set contentes of regA to regA ^ regB
+            cpu_registers.a = xor_r8(cpu_registers.b);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xA9:
+            //set contentes of regA to regA ^ regC
+            cpu_registers.a = xor_r8(cpu_registers.c);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xAA:
+            //set contents of regA to regA ^ regD
+            cpu_registers.a = xor_r8(cpu_registers.d);
+            
+            executed_t_ticks = 4;
+            break;
+
+        case 0xAB:
+            //set contents of regA to regA ^ regE
+            cpu_registers.a = xor_r8(cpu_registers.e);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xAC:
+            //set contents of regA to regA ^ regH
+            cpu_registers.a = xor_r8(cpu_registers.h);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xAD:
+            //set the contents of regA to regA ^ regL
+            cpu_registers.a = xor_r8(cpu_registers.l);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xAE:
+            //set the contents of regA to regA ^ WRAM[regHL]
+            cpu_registers.a = xor_r8(read_memory(cpu_registers.hl));
+
+            executed_t_ticks = 8;
+            break;
+
+        case 0xAF:
+            //set the contents of regA to regA ^ regA
+            cpu_registers.a = xor_r8(cpu_registers.a);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xB0:
+            //set the contents of regA to regA | regB
+            cpu_registers.a = or_r8(cpu_registers.b);
+            
+            executed_t_ticks = 4;
+            break;
+
+        case 0xB1:
+            //set the contents of regA to regA | regC
+            cpu_registers.a = or_r8(cpu_registers.c);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xB2:
+            //set the contents of regA to regA | regD
+            cpu_registers.a = or_r8(cpu_registers.d);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xB3:
+            //set the contents of regA to regA | regE
+            cpu_registers.a = or_r8(cpu_registers.e);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xB4:
+            //set the contents of regA to regA | regH
+            cpu_registers.a = or_r8(cpu_registers.h);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xB5:
+            //set the contents of regA to regA | regL
+            cpu_registers.a = or_r8(cpu_registers.l);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xB6:
+            //set the contents of regA to regA | WRAM[regHL]
+            cpu_registers.a = or_r8(read_memory(cpu_registers.hl));
+
+            executed_t_ticks = 8;
+            break;
+
+        case 0xB7:
+            //set the contents of regA to regA | regA
+            cpu_registers.a = or_r8(cpu_registers.a);
 
             executed_t_ticks = 4;
             break;
