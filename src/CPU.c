@@ -4,6 +4,8 @@
 
 sm83_registers_t cpu_registers = {};
 bool isHalted = false;
+bool interrupts_enabled = false;
+uint8_t ei_delay = 2;
 
 uint8_t next_instruction = 0x0; //next instruction to be executed
 uint64_t total_t_cycles = 0;
@@ -21,6 +23,13 @@ uint8_t fetch(){
 
 void run_cpu(){
     int t_cycles_executed = 0;
+
+    if (ei_delay > 0){
+        ei_delay--;
+        if (ei_delay = 0){
+            interrupts_enabled = true;
+        }
+    }
 
     //if the cpu is halted, don't fetch next instruction
     if (isHalted){
@@ -122,6 +131,10 @@ uint8_t inc_r8(uint8_t reg){
     return result;
 }
 
+void comp_r8(uint8_t val){
+    alu_sub8(val);
+}
+
 //BITWISE LOGIC INSTRUCTIONS
 uint8_t and_r8(uint8_t reg){
 
@@ -159,6 +172,24 @@ uint8_t xor_r8(uint8_t reg){
     uint8_t result = a_val ^ reg;
 
     if (result == 0) flags_mask |= 1 << 7;
+
+    cpu_registers.f = flags_mask;
+
+    return result;
+}
+
+uint8_t not(){
+
+    uint8_t flags_mask = 0x0;
+    uint8_t a_val = cpu_registers.a;
+
+    uint8_t result = ~a_val; //bitwise NOT
+
+    flags_mask |= cpu_registers.f; //keep the value of Z and C flags
+
+    //set N and H flags to 1
+    flags_mask |= 1 << 5;
+    flags_mask |= 1 << 6;
 
     cpu_registers.f = flags_mask;
 

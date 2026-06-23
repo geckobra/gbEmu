@@ -17,19 +17,23 @@ typedef struct{
 
 extern sm83_registers_t cpu_registers;
 extern bool isHalted;
+extern bool interrupts_enabled;
+extern uint8_t ei_delay;
 
-//ALU HELPER FUNCTIONS
+//8-BIT ARITHMETIC HELPER FUNCTIONS
 uint8_t alu_add8(uint8_t); //performs addition to the accumulation register and sets corresponding flags
 uint8_t alu_adc8(uint8_t); //performs addition with carry to the accumulation register and sets corresponding flags
 uint8_t alu_sub8(uint8_t); //performs substraction to the accumulation register and sets corresopnding flags
-uint8_t alu_subc8(uint8_t); //performs substraction with carry to the accumulation register and seets corresponding flags
+uint8_t alu_subc8(uint8_t);//performs substraction with carry to the accumulation register and seets corresponding flags
 uint8_t    inc_r8(uint8_t);
 uint8_t    inc_r16(uint16_t);
+void comp_r8(uint8_t);     //substract the value from regA and set flags accordingly, discarding result
 
 //BITWISE LOGIC INSTRUCTIONS
 uint8_t and_r8(uint8_t); //performs regA & r8
 uint8_t or_r8(uint8_t);  //performs regA | r8
 uint8_t xor_r8(uint8_t); //performs regA ^ r8
+uint8_t not();           //complement accumulator
 
 void cpu_init();
 void run_cpu();
