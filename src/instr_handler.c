@@ -201,6 +201,13 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
 
+        case 0x2F:
+            //complement accumulator
+            cpu_registers.a = not();
+
+            executed_t_ticks = 4;
+            break;
+
         case 0x31:{
             //load n16 value into SP
             uint8_t l_val = fetch();
@@ -240,6 +247,15 @@ int execute(uint8_t opcode){
             executed_t_ticks  = 12;
             break;
 
+        case 0x37:
+            //set carry flag
+
+            cpu_registers.f &= 0b11001111; //reset H and N flags keeping Zero and Carry flags
+            cpu_registers.f |= 1 << 4;     //set carry flag afterwards
+
+            executed_t_ticks = 4;
+            break;
+
         case 0x3A:
             //load value at WRAM[regHL] into regA and decrement HL by 1
             cpu_registers.a = read_memory(cpu_registers.hl);
@@ -258,6 +274,15 @@ int execute(uint8_t opcode){
             value = fetch();
             cpu_registers.a = value;
             executed_t_ticks = 8;
+            break;
+
+        case 0x3F:
+            //complement carry flag
+
+            cpu_registers.f &= 0b11001111; //reset H and N flags keeping Zero and Carry flags
+            cpu_registers.f ^= 1 << 4;     //invert carry flag
+
+            executed_t_ticks = 4;
             break;
     
         case 0x40:
@@ -642,140 +667,6 @@ int execute(uint8_t opcode){
             executed_t_ticks = 4;
             break;
 
-        case 0xC1:
-            //POP 16 bits from the stack and store at BC
-            cpu_registers.c = read_memory(cpu_registers.sp++);
-            cpu_registers.b = read_memory(cpu_registers.sp++); //INC SP so it points to the top of the stack
-
-            executed_t_ticks = 12;
-            break;
-
-        case 0xC5:
-            //PUSH regBC into the stack
-            cpu_registers.sp--;
-            write_memory(cpu_registers.sp, cpu_registers.b); //write high byte first
-            cpu_registers.sp--;
-            write_memory(cpu_registers.sp, cpu_registers.c); //write low byte second, Little-Endian
-
-            executed_t_ticks = 16;
-            break;
-
-        case 0xD1:
-            //POP 16 bits from the stack and store at DE
-            cpu_registers.e = read_memory(cpu_registers.sp++);
-            cpu_registers.d = read_memory(cpu_registers.sp++);
-
-            executed_t_ticks = 12;
-            break;
-
-        case 0xD5:
-            //PUSH regDE into the stack
-            cpu_registers.sp--;
-            write_memory(cpu_registers.sp, cpu_registers.d);
-            cpu_registers.sp--;
-            write_memory(cpu_registers.sp, cpu_registers.e);
-
-            executed_t_ticks = 16;
-            break;
-
-        case 0xE0: {
-            //write the contents of regA to HIGH WRAM[n8]
-            value = fetch(); //get the address
-
-            //the address is encoded as the 8-bit low byte and assumes high byte of $FF
-            uint16_t address = 0xFF00;
-            address = address | (uint16_t)value;
-
-            write_memory(address, cpu_registers.a);
-            executed_t_ticks = 12;
-            break;
-        }
-
-        case 0xE1:
-            //POP 16 bits from stack and store them at HL
-            cpu_registers.l = read_memory(cpu_registers.sp++);
-            cpu_registers.h = read_memory(cpu_registers.sp++);
-
-            executed_t_ticks = 12;
-            break;
-
-        case 0xE2: {
-            //write the contents of regA to HIGH WRAM[regC]
-            uint16_t address = 0xFF00;
-            address = address | (uint16_t)cpu_registers.c;
-
-            write_memory(address, cpu_registers.a);
-            executed_t_ticks = 8;
-            break;
-        }
-
-        case 0xE5:
-            //PUSH regHL into the stack
-            cpu_registers.sp--;
-            write_memory(cpu_registers.sp, cpu_registers.h);
-            cpu_registers.sp--;
-            write_memory(cpu_registers.sp, cpu_registers.l);
-
-            executed_t_ticks = 16;
-            break;
-
-        case 0xEA:{
-            //write the contents of regA to WRAM[n16]
-            uint8_t l_val = fetch();
-            uint8_t h_val = fetch();
-            uint16_t res_address = ((uint16_t)h_val << 8) | l_val;
-            write_memory(res_address, cpu_registers.a);
-            executed_t_ticks = 16;
-            break;
-        }
-
-        case 0xF0: {
-            //load the contents at HIGH WRAM[n8] into regA
-            value = fetch();
-            uint16_t address = 0xFF00;
-            address = address | (uint16_t)value;
-            cpu_registers.a = read_memory(address);
-            executed_t_ticks = 12;
-            break;
-        }
-
-        case 0xF1:
-            //POP regAF from the stack
-            cpu_registers.f = read_memory(cpu_registers.sp++) & 0xF0;
-            cpu_registers.a = read_memory(cpu_registers.sp++);
-
-            executed_t_ticks = 12;
-            break;
-
-        case 0xF2: {
-            //load the contents at HIGH WRAM[regC] into regA
-            uint16_t address = 0xFF00;
-            address = address | (uint16_t)cpu_registers.c;
-            cpu_registers.a = read_memory(address);
-            executed_t_ticks = 8;
-            break;
-        }
-
-        case 0xF5:
-            //PUSH regAF into the stack
-            cpu_registers.sp--;
-            write_memory(cpu_registers.sp, cpu_registers.a);
-            cpu_registers.sp--;
-            write_memory(cpu_registers.sp, cpu_registers.f & 0xF0);
-
-            executed_t_ticks = 16;
-            break;
-
-        case 0xF8:{
-            //TODO: Implement check for H and C flags
-
-            //load SP + e8 into regHL
-            int8_t val = (int8_t)fetch();
-            cpu_registers.hl = (cpu_registers.sp + (int16_t)val);
-            executed_t_ticks = 12;
-            break;
-        }
-
         case 0x80:
             //add contents of regB to regA
             cpu_registers.a = alu_add8(cpu_registers.b);
@@ -1152,6 +1043,281 @@ int execute(uint8_t opcode){
             executed_t_ticks = 4;
             break;
 
+        case 0xB8:
+            //compare the contents of regA with regB
+            comp_r8(cpu_registers.b);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xB9:
+            //compare the contents of regA with regC
+            comp_r8(cpu_registers.c);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xBA:
+            //compare the contents of regA with regD
+            comp_r8(cpu_registers.d);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xBB:
+            //compare the contents of regA with regE
+            comp_r8(cpu_registers.e);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xBC:
+            //compare the contents of regA with regH
+            comp_r8(cpu_registers.h);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xBD:
+            //compare the contents of regA with regL
+            comp_r8(cpu_registers.l);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xBE:
+            //compare the contents of regA with WRAM[regHL]
+            comp_r8(read_memory(cpu_registers.hl));
+            
+            executed_t_ticks = 8;
+            break;
+
+        case 0xBF:
+            //compare the contents of regA with regA
+            comp_r8(cpu_registers.a);
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xC1:
+            //POP 16 bits from the stack and store at BC
+            cpu_registers.c = read_memory(cpu_registers.sp++);
+            cpu_registers.b = read_memory(cpu_registers.sp++); //INC SP so it points to the top of the stack
+
+            executed_t_ticks = 12;
+            break;
+
+        case 0xC5:
+            //PUSH regBC into the stack
+            cpu_registers.sp--;
+            write_memory(cpu_registers.sp, cpu_registers.b); //write high byte first
+            cpu_registers.sp--;
+            write_memory(cpu_registers.sp, cpu_registers.c); //write low byte second, Little-Endian
+
+            executed_t_ticks = 16;
+            break;
+
+        case 0xC6:
+            //add n8 to regA
+            value = fetch();
+            cpu_registers.a = alu_add8(value);
+
+            executed_t_ticks = 8;
+            break;
+
+        case 0xCE:
+            //add n8 to regA with carry
+            value = fetch();
+            cpu_registers.a = alu_adc8(value);
+            
+            executed_t_ticks = 8;
+            break;
+
+        case 0xD1:
+            //POP 16 bits from the stack and store at DE
+            cpu_registers.e = read_memory(cpu_registers.sp++);
+            cpu_registers.d = read_memory(cpu_registers.sp++);
+
+            executed_t_ticks = 12;
+            break;
+
+        case 0xD5:
+            //PUSH regDE into the stack
+            cpu_registers.sp--;
+            write_memory(cpu_registers.sp, cpu_registers.d);
+            cpu_registers.sp--;
+            write_memory(cpu_registers.sp, cpu_registers.e);
+
+            executed_t_ticks = 16;
+            break;
+
+        case 0xD6:
+            //substract n8 from regA
+            value = fetch();
+            cpu_registers.a = alu_sub8(value);
+
+            executed_t_ticks = 8;
+            break;
+
+        case 0xDE:  
+            //substract n8 from regA with carry
+            value = fetch();
+            cpu_registers.a = alu_subc8(value);
+
+            executed_t_ticks = 8;
+            break;
+
+        case 0xE0: {
+            //write the contents of regA to HIGH WRAM[n8]
+            value = fetch(); //get the address
+
+            //the address is encoded as the 8-bit low byte and assumes high byte of $FF
+            uint16_t address = 0xFF00;
+            address = address | (uint16_t)value;
+
+            write_memory(address, cpu_registers.a);
+            executed_t_ticks = 12;
+            break;
+        }
+
+        case 0xE1:
+            //POP 16 bits from stack and store them at HL
+            cpu_registers.l = read_memory(cpu_registers.sp++);
+            cpu_registers.h = read_memory(cpu_registers.sp++);
+
+            executed_t_ticks = 12;
+            break;
+
+        case 0xE2: {
+            //write the contents of regA to HIGH WRAM[regC]
+            uint16_t address = 0xFF00;
+            address = address | (uint16_t)cpu_registers.c;
+
+            write_memory(address, cpu_registers.a);
+            executed_t_ticks = 8;
+            break;
+        }
+
+        case 0xE5:
+            //PUSH regHL into the stack
+            cpu_registers.sp--;
+            write_memory(cpu_registers.sp, cpu_registers.h);
+            cpu_registers.sp--;
+            write_memory(cpu_registers.sp, cpu_registers.l);
+
+            executed_t_ticks = 16;
+            break;
+
+        case 0xE6:
+            //set contents of regA to regA & n8
+            value = fetch();
+            cpu_registers.a = and_r8(value);
+
+            executed_t_ticks = 8;
+            break;
+
+        case 0xE8:{
+            //add e8 value to the stack pointer
+            int8_t val = (int8_t)fetch();
+            uint8_t unsigned_val = (uint8_t)val;
+            uint8_t sp_low = (uint8_t)(cpu_registers.sp & 0xFF);
+
+            cpu_registers.f = 0x0;
+
+            if ((sp_low & 0x0F )+ (unsigned_val & 0x0F) > 0x0F) cpu_registers.f |= 1 << 5;
+            if (sp_low + unsigned_val > 0xFF) cpu_registers.f |= 1 << 4;
+
+            cpu_registers.sp = (uint16_t)((int32_t)cpu_registers.sp + val);
+            executed_t_ticks = 16;
+            break;
+        }
+
+        case 0xEA:{
+            //write the contents of regA to WRAM[n16]
+            uint8_t l_val = fetch();
+            uint8_t h_val = fetch();
+            uint16_t res_address = ((uint16_t)h_val << 8) | l_val;
+            write_memory(res_address, cpu_registers.a);
+            executed_t_ticks = 16;
+            break;
+        }
+
+        case 0xEE:
+            //set the contents of regA to regA ^ n8
+            value = fetch();
+            cpu_registers.a = xor_r8(value);
+
+            executed_t_ticks = 8;
+            break;
+
+        case 0xF0: {
+            //load the contents at HIGH WRAM[n8] into regA
+            value = fetch();
+            uint16_t address = 0xFF00;
+            address = address | (uint16_t)value;
+            cpu_registers.a = read_memory(address);
+            executed_t_ticks = 12;
+            break;
+        }
+
+        case 0xF1:
+            //POP regAF from the stack
+            cpu_registers.f = read_memory(cpu_registers.sp++) & 0xF0;
+            cpu_registers.a = read_memory(cpu_registers.sp++);
+
+            executed_t_ticks = 12;
+            break;
+
+        case 0xF2: {
+            //load the contents at HIGH WRAM[regC] into regA
+            uint16_t address = 0xFF00;
+            address = address | (uint16_t)cpu_registers.c;
+            cpu_registers.a = read_memory(address);
+            executed_t_ticks = 8;
+            break;
+        }
+
+        case 0xF3:
+            //disable IME flag
+            interrupts_enabled = false;
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xF5:
+            //PUSH regAF into the stack
+            cpu_registers.sp--;
+            write_memory(cpu_registers.sp, cpu_registers.a);
+            cpu_registers.sp--;
+            write_memory(cpu_registers.sp, cpu_registers.f & 0xF0);
+
+            executed_t_ticks = 16;
+            break;
+
+        case 0xF6:
+            //set contents of regA to regA | n8
+            value = fetch();
+            cpu_registers.a = or_r8(value);
+
+            executed_t_ticks = 8;
+            break;
+
+        case 0xF8:{
+            //load SP + e8 into regHL
+            int8_t val = (int8_t)fetch();
+            uint8_t unsigned_val = (uint8_t)val;
+            uint8_t sp_low = (uint8_t)(cpu_registers.sp & 0xFF);
+
+            cpu_registers.f = 0x0;
+
+            if ((sp_low & 0x0F )+ (unsigned_val & 0x0F) > 0x0F) cpu_registers.f |= 1 << 5;
+            if (sp_low + unsigned_val > 0xFF) cpu_registers.f |= 1 << 4;
+
+            cpu_registers.hl = (uint16_t)((int32_t)cpu_registers.sp + val);
+            executed_t_ticks = 12;
+            break;
+        }
+
         case 0xF9:
             //load the contents of regHL into SP
             cpu_registers.sp = cpu_registers.hl;
@@ -1168,6 +1334,21 @@ int execute(uint8_t opcode){
             executed_t_ticks = 16;
             break;
         }
+
+        case 0xFB:
+            //enable interrupts by setting the IME flag - this should be delayed by one instruction
+            ei_delay = 2;
+
+            executed_t_ticks = 4;
+            break;
+
+        case 0xFE:
+            //compare the contents of regA to n8
+            value = fetch();
+            comp_r8(value);
+
+            executed_t_ticks = 8;
+            break;
 
     }
 
