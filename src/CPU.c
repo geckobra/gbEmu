@@ -195,3 +195,63 @@ uint8_t not(){
 
     return result;
 }
+
+
+//BIT SHIFT INSTRUCTIONS
+uint8_t rr_r8(uint8_t reg){
+    //rotate register reg right through the carry flag
+
+    uint8_t c_flag = (cpu_registers.f >>4) & 1;
+    uint8_t lsb = reg & 1;
+
+    uint8_t result = (reg>>1) | (c_flag << 7);
+
+    cpu_registers.f = 0x0;
+
+    if (result == 0) cpu_registers.f |= 1 << 7;
+    cpu_registers.f |= (lsb << 4);
+
+    return result;
+}
+
+uint8_t rl_r8(uint8_t reg){
+    //rotate register reg left through the carry flag
+
+    uint8_t c_flag = (cpu_registers.f >>4) & 1; //get current value of carry flag
+    uint8_t msb = reg & 0x80; //get MSB
+
+    uint8_t result = (reg<<1) | c_flag;
+
+    cpu_registers.f = 0x0;
+
+    if (result == 0) cpu_registers.f |= 1 << 7;
+    cpu_registers.f |= (msb >> 3); //set new value of C flag to MSB
+
+    return result;
+}
+
+uint8_t rrc_r8(uint8_t reg){
+    //perform circular right rotation of reg
+
+    //standard right circular byte rotation
+    uint8_t lsb = reg & 1;
+    uint8_t result = (reg>>1) | (lsb<<7);
+
+    if (result == 0) cpu_registers.f |= 1 << 7;
+    cpu_registers.f |= (lsb << 4); //set carry flag to value of LSB
+
+    return result;
+}
+
+uint8_t rlc_r8(uint8_t reg){
+    //perform circular left rotation of reg
+
+    //standard left circular byte rotation
+    uint8_t msb = reg & 0x80;
+    uint8_t result = (reg<<1) | (msb>>7);
+
+    if (result == 0) cpu_registers.f |= 1<<4;
+    cpu_registers.f = (msb >> 3); //set carry flag to the value of MSB
+
+    return result;
+}

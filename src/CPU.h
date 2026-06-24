@@ -35,6 +35,12 @@ uint8_t or_r8(uint8_t);  //performs regA | r8
 uint8_t xor_r8(uint8_t); //performs regA ^ r8
 uint8_t not();           //complement accumulator
 
+//BIT SHIFT INSTRUCTIONS
+uint8_t rr_r8(uint8_t);  //rotate a register right through carry flag
+uint8_t rl_r8(uint8_t);  //rotate a register left through carry flag
+uint8_t rlc_r8(uint8_t); //perform left circular rotation of a register
+uint8_t rrc_r8(uint8_t); //perform right circular rotation of a register
+
 void cpu_init();
 void run_cpu();
 int execute(uint8_t);
