@@ -57,6 +57,15 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
 
+        case 0x07:
+            //perform left circular rotation on regA
+            cpu_registers.a = rlc_r8(cpu_registers.a);
+
+            cpu_registers.f &= 0b1011111; //this instruction resets zero flag (bit 7)
+
+            executed_t_ticks = 4;
+            break;
+
         case 0x08: {
             //load the stack pointer at WRAM[n16]
             uint8_t l_val = fetch();
@@ -89,6 +98,15 @@ int execute(uint8_t opcode){
             value = fetch();
             cpu_registers.c = value;
             executed_t_ticks = 8;
+            break;
+
+        case 0x0F:
+            //perform circular right rotation on regA
+            cpu_registers.a = rrc_r8(cpu_registers.a);
+
+            cpu_registers.f &= 0b1011111; //this instruction resets zero flag (bit 7)
+
+            executed_t_ticks = 4;
             break;
 
         case 0x11:{
@@ -125,6 +143,15 @@ int execute(uint8_t opcode){
             cpu_registers.d = value;
             executed_t_ticks = 8;
             break;
+
+        case 0x17:
+            //perform left rotation through carry flag on regA
+            cpu_registers.a = rl_r8(cpu_registers.a);
+
+            cpu_registers.f &= 0b10111111;
+
+            executed_t_ticks = 4;
+            break;
         
         case 0x1A:
             //load value at WRAM[DE] into regA
@@ -143,6 +170,14 @@ int execute(uint8_t opcode){
             value = fetch();
             cpu_registers.e = value;
             executed_t_ticks = 8;
+            break;
+
+        case 0x1F:
+            //perform right rotation through carry flag on regA
+            cpu_registers.a = rr_r8(cpu_registers.a);
+
+            cpu_registers.f &= 0b10111111;
+            executed_t_ticks = 4;
             break;
 
         case 0x21:{
