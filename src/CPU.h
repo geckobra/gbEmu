@@ -21,13 +21,14 @@ extern bool interrupts_enabled;
 extern uint8_t ei_delay;
 
 //8-BIT ARITHMETIC HELPER FUNCTIONS
-uint8_t alu_add8(uint8_t); //performs addition to the accumulation register and sets corresponding flags
-uint8_t alu_adc8(uint8_t); //performs addition with carry to the accumulation register and sets corresponding flags
-uint8_t alu_sub8(uint8_t); //performs substraction to the accumulation register and sets corresopnding flags
-uint8_t alu_subc8(uint8_t);//performs substraction with carry to the accumulation register and seets corresponding flags
-uint8_t    inc_r8(uint8_t);
-uint8_t    inc_r16(uint16_t);
-void comp_r8(uint8_t);     //substract the value from regA and set flags accordingly, discarding result
+uint8_t alu_add8(uint8_t);              //performs addition to the accumulation register and sets corresponding flags
+uint8_t alu_adc8(uint8_t);              //performs addition with carry to the accumulation register and sets corresponding flags
+uint8_t alu_sub8(uint8_t);              //performs substraction to the accumulation register and sets corresopnding flags
+uint8_t alu_subc8(uint8_t);             //performs substraction with carry to the accumulation register and seets corresponding flags
+uint8_t inc_r8(uint8_t);
+uint8_t dec_r8(uint8_t); 
+uint16_t alu_add16(uint16_t, uint16_t); //performs addition between two 16-bit registers and sets flags accordingly 
+void comp_r8(uint8_t);                  //substract the value from regA and set flags accordingly, discarding result
 
 //BITWISE LOGIC INSTRUCTIONS
 uint8_t and_r8(uint8_t); //performs regA & r8

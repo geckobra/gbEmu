@@ -47,6 +47,12 @@ int execute(uint8_t opcode){
             executed_t_ticks = 4;
             break;
 
+        case 0x05:
+            //decrement regB and set flags accordingly
+            cpu_registers.b = dec_r8(cpu_registers.b);
+            executed_t_ticks = 4;
+            break;
+
         case 0x06:
             //load n8 value into regB
             value = fetch();
@@ -81,15 +87,36 @@ int execute(uint8_t opcode){
             break;
         }
 
+        case 0x09:
+            //add contents of regBC to regHL
+            cpu_registers.hl = alu_add16(cpu_registers.hl, cpu_registers.bc);
+
+            executed_t_ticks = 8;
+            break;
+
         case 0x0A:
             //load in regA the value stored at WRAM[BC]
             cpu_registers.a = read_memory(cpu_registers.bc);
             executed_t_ticks = 8;
             break;
 
+        case 0x0B:
+            //decrement regBC by one
+            cpu_registers.bc--;
+
+            executed_t_ticks = 8;
+            break;
+
         case 0x0C:
             //increment regC and set corresponding flags
             cpu_registers.c = inc_r8(cpu_registers.c);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x0D:
+            //decrement regC and set flags accordingly
+            cpu_registers.c = dec_r8(cpu_registers.c);
+
             executed_t_ticks = 4;
             break;
 
@@ -137,6 +164,12 @@ int execute(uint8_t opcode){
             executed_t_ticks = 4;
             break;
 
+        case 0x15:
+            //decrement regD and set flags accordingly
+            cpu_registers.d = dec_r8(cpu_registers.d);
+            executed_t_ticks = 4;
+            break;
+
         case 0x16:
             //load an 8 bit value in regD
             value = fetch();
@@ -152,6 +185,20 @@ int execute(uint8_t opcode){
 
             executed_t_ticks = 4;
             break;
+
+        case 0x18:
+            //jump to address n8
+            value = fetch();
+            
+
+            break;
+
+        case 0x19:
+            //add the contents of regHL and regDE
+            cpu_registers.hl = alu_add16(cpu_registers.hl, cpu_registers.de);
+
+            executed_t_ticks = 8;
+            break;
         
         case 0x1A:
             //load value at WRAM[DE] into regA
@@ -159,9 +206,23 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
 
+        case 0x1B:
+            //decrement regDE by one
+            cpu_registers.de--;
+
+            executed_t_ticks = 8;
+            break;
+
         case 0x1C:
             //increment regE and set corresponding flags
             cpu_registers.e = inc_r8(cpu_registers.e);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x1D:
+            //decrement regE and set flags accordingly
+            cpu_registers.e = dec_r8(cpu_registers.e);
+
             executed_t_ticks = 4;
             break;
 
@@ -209,10 +270,24 @@ int execute(uint8_t opcode){
             executed_t_ticks = 4;
             break;
 
+        case 0x25:
+            //decrement regH by one and set flags accordingly
+            cpu_registers.h = dec_r8(cpu_registers.h);
+
+            executed_t_ticks = 4;
+            break;
+
         case 0x26:
             //load n8 value into regH
             value = fetch();
             cpu_registers.h = value;
+            executed_t_ticks = 8;
+            break;
+
+        case 0x29:
+            //add the contents of regHL and regHL
+            cpu_registers.hl = alu_add16(cpu_registers.hl, cpu_registers.hl);
+
             executed_t_ticks = 8;
             break;
 
@@ -223,9 +298,23 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
 
+        case 0x2B:
+            //decrement register HL by one
+            cpu_registers.hl--;
+
+            executed_t_ticks = 8;
+            break;
+
         case 0x2C:
             //increment regL and set corresponding flags
             cpu_registers.l = inc_r8(cpu_registers.l);
+            executed_t_ticks = 4;
+            break;
+
+        case 0x2D:
+            //decrement regL and set flags accordingly
+            cpu_registers.l = dec_r8(cpu_registers.l);
+
             executed_t_ticks = 4;
             break;
 
@@ -275,6 +364,15 @@ int execute(uint8_t opcode){
             executed_t_ticks = 12;
             break;
 
+        case 0x35:
+            //decrement WRAM[regHL] and set flags accordingly
+            value = read_memory(cpu_registers.hl);
+            value = dec_r8(value);
+            write_memory(cpu_registers.hl, value);
+
+            executed_t_ticks = 12;
+            break;
+
         case 0x36:
             //write n8 value into WRAM[regHL]
             value = fetch();
@@ -291,11 +389,33 @@ int execute(uint8_t opcode){
             executed_t_ticks = 4;
             break;
 
+        case 0x39:
+            //add the contents of regHL and regSP
+
+            cpu_registers.hl = alu_add16(cpu_registers.hl, cpu_registers.sp);
+
+            executed_t_ticks = 8;
+            break;
+
         case 0x3A:
             //load value at WRAM[regHL] into regA and decrement HL by 1
             cpu_registers.a = read_memory(cpu_registers.hl);
             cpu_registers.hl--;
             executed_t_ticks = 8;
+            break;
+
+        case 0x3B:
+            //decrement SP by one
+            cpu_registers.sp--;
+
+            executed_t_ticks = 8;
+            break;
+
+        case 0x3D:
+            //decrement regA and set flags accordingly
+            cpu_registers.a = dec_r8(cpu_registers.a);
+
+            executed_t_ticks = 4;
             break;
 
         case 0x3C:
@@ -1134,20 +1254,29 @@ int execute(uint8_t opcode){
             executed_t_ticks = 4;
             break;
 
+        case 0xC0:
+            //return from subroutine if Z flag is not set
+
+            if ((cpu_registers.f & 0x80)>>7){
+                //if Z is set, don't return from subroutine and take 8 T-Cycles
+                executed_t_ticks = 8;
+            } else{
+                cpu_registers.pc = pop(&cpu_registers.sp);
+                executed_t_ticks = 20;
+            }
+
+            break;
+            
         case 0xC1:
             //POP 16 bits from the stack and store at BC
-            cpu_registers.c = read_memory(cpu_registers.sp++);
-            cpu_registers.b = read_memory(cpu_registers.sp++); //INC SP so it points to the top of the stack
+            cpu_registers.bc = pop(&cpu_registers.sp);
 
             executed_t_ticks = 12;
             break;
 
         case 0xC5:
             //PUSH regBC into the stack
-            cpu_registers.sp--;
-            write_memory(cpu_registers.sp, cpu_registers.b); //write high byte first
-            cpu_registers.sp--;
-            write_memory(cpu_registers.sp, cpu_registers.c); //write low byte second, Little-Endian
+            push(&cpu_registers.sp, cpu_registers.bc);
 
             executed_t_ticks = 16;
             break;
@@ -1160,12 +1289,43 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
 
+        case 0xC8:
+            //return from subroutine if Z is set
+
+            if ((cpu_registers.f & 0x80)>>7){
+                cpu_registers.pc = pop(&cpu_registers.sp);
+                executed_t_ticks = 20;
+            } else{
+                executed_t_ticks = 8;
+            }
+
+            break;
+
+        case 0xC9:
+            //return from subroutine, this is basically POP PC
+            cpu_registers.pc = pop(&cpu_registers.sp);
+
+            executed_t_ticks = 4;
+            break;
+
         case 0xCE:
             //add n8 to regA with carry
             value = fetch();
             cpu_registers.a = alu_adc8(value);
             
             executed_t_ticks = 8;
+            break;
+
+        case 0xD0:
+            //return from subroutine if C flag is not set
+
+            if ((cpu_registers.f & 0x10) >> 4){
+                executed_t_ticks = 8;
+            } else{
+                cpu_registers.pc = pop(&cpu_registers.sp);
+                executed_t_ticks = 20;
+            }
+
             break;
 
         case 0xD1:
@@ -1192,6 +1352,27 @@ int execute(uint8_t opcode){
             cpu_registers.a = alu_sub8(value);
 
             executed_t_ticks = 8;
+            break;
+
+        case 0xD8:
+            //return from subroutine if flag C is set
+
+            if ((cpu_registers.f & 0x10)>>4){
+                cpu_registers.pc = pop(&cpu_registers.sp);
+                executed_t_ticks = 20;
+            } else{
+                executed_t_ticks = 8;
+            }
+
+            break;
+        
+        case 0xD9:
+            //return from subroutine and enable interrupts 
+
+            cpu_registers.pc = pop(&cpu_registers.sp);
+            executed_t_ticks = 16;
+
+            interrupts_enabled = true;
             break;
 
         case 0xDE:  

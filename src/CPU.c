@@ -131,6 +131,38 @@ uint8_t inc_r8(uint8_t reg){
     return result;
 }
 
+uint8_t dec_r8(uint8_t reg){
+    //decrement reg by one and set flags accordingly
+
+    uint8_t flags_mask = 0x0;
+    uint8_t result = reg - 1;
+
+    flags_mask |= (cpu_registers.f & 0x10); //keep contents of carry flag
+    flags_mask |= (1<<6); //set N flag
+
+    if (result == 0) flags_mask |= (1<<7);
+    if ((reg & 0x0F) == 0) flags_mask |= (1<<5); //set H flag if there is borrow from bit 3 to bit 4
+
+    cpu_registers.f = flags_mask;
+
+    return result;
+}
+
+uint16_t alu_add16(uint16_t reg1, uint16_t reg2){
+
+    uint8_t flags_mask = 0x0;
+    uint32_t result = reg1+reg2;
+
+    flags_mask |= (cpu_registers.f & 0x80); //keep contents of Zero flag
+
+    if ((reg1 & 0x0FFF) + (reg2 & 0x0fFF) > 0x0FFF) flags_mask |= 1<<5;
+    if (result > 0xFFFF) flags_mask |= 1 << 4;
+
+    cpu_registers.f = flags_mask;
+
+    return (uint16_t)result;
+}
+
 void comp_r8(uint8_t val){
     alu_sub8(val);
 }
@@ -195,7 +227,6 @@ uint8_t not(){
 
     return result;
 }
-
 
 //BIT SHIFT INSTRUCTIONS
 uint8_t rr_r8(uint8_t reg){
