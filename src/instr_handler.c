@@ -11,7 +11,7 @@ int execute(uint8_t opcode){
         case 0x0:
             //NOP, doesn't do anything
             executed_t_ticks = 4;
-        break;
+            break;
 
         case 0x01:{
             //load n16 value into BC register
@@ -56,7 +56,6 @@ int execute(uint8_t opcode){
         case 0x06:
             //load n8 value into regB
             value = fetch();
-            printf("Load %d into B\n", value);
 
             cpu_registers.b = value;
             
@@ -67,7 +66,7 @@ int execute(uint8_t opcode){
             //perform left circular rotation on regA
             cpu_registers.a = rlc_r8(cpu_registers.a);
 
-            cpu_registers.f &= 0b1011111; //this instruction resets zero flag (bit 7)
+            cpu_registers.f &= ~(1 << 7); //this instruction resets zero flag (bit 7)
 
             executed_t_ticks = 4;
             break;
@@ -131,7 +130,7 @@ int execute(uint8_t opcode){
             //perform circular right rotation on regA
             cpu_registers.a = rrc_r8(cpu_registers.a);
 
-            cpu_registers.f &= 0b1011111; //this instruction resets zero flag (bit 7)
+            cpu_registers.f &= ~(1 << 7); //this instruction resets zero flag (bit 7)
 
             executed_t_ticks = 4;
             break;
@@ -193,7 +192,7 @@ int execute(uint8_t opcode){
             //perform left rotation through carry flag on regA
             cpu_registers.a = rl_r8(cpu_registers.a);
 
-            cpu_registers.f &= 0b10111111;
+            cpu_registers.f &= ~(1 << 7);
 
             executed_t_ticks = 4;
             break;
@@ -251,7 +250,7 @@ int execute(uint8_t opcode){
             //perform right rotation through carry flag on regA
             cpu_registers.a = rr_r8(cpu_registers.a);
 
-            cpu_registers.f &= 0b10111111;
+            cpu_registers.f &= ~(1 << 7);
             executed_t_ticks = 4;
             break;
 
@@ -329,9 +328,11 @@ int execute(uint8_t opcode){
 
             cpu_registers.a += n_flag ? -adjustment : adjustment;
 
-            uint8_t flags_mask = cpu_registers.f & (1 << 6);
+            uint8_t flags_mask = cpu_registers.f & (1 << 6); //N flag is preserved
             if (cpu_registers.a == 0) flags_mask |= 1 << 7;
             if (c_flag) flags_mask |= 1 << 4;
+
+            flags_mask &= 0xF0;
 
             cpu_registers.f = flags_mask;
             executed_t_ticks = 4;
@@ -463,14 +464,17 @@ int execute(uint8_t opcode){
             executed_t_ticks  = 12;
             break;
 
-        case 0x37:
+        case 0x37:{
             //set carry flag
+            uint8_t flags_mask = 0x0; //clear all flags
 
-            cpu_registers.f &= 0b11001111; //reset H and N flags keeping Zero and Carry flags
-            cpu_registers.f |= 1 << 4;     //set carry flag afterwards
+            flags_mask |= cpu_registers.f & (1<<7); //preserve zero flag
+            flags_mask |= 1 << 4;     //set carry flag afterwards
 
+            cpu_registers.f = flags_mask;
             executed_t_ticks = 4;
             break;
+        }
 
         case 0x38:{
             value = fetch();
@@ -528,14 +532,18 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
 
-        case 0x3F:
+        case 0x3F:{
             //complement carry flag
 
-            cpu_registers.f &= 0b11001111; //reset H and N flags keeping Zero and Carry flags
-            cpu_registers.f ^= 1 << 4;     //invert carry flag
+            uint8_t flags_mask = 0x0; //reset H and N flags
+            
+            flags_mask |= cpu_registers.f & (1 << 7); //keep zero flag
+            flags_mask |= (~cpu_registers.f & (1 << 4)); //invert value of carry flag
 
+            cpu_registers.f = flags_mask;
             executed_t_ticks = 4;
             break;
+        }
     
         case 0x40:
             //load regB into regB
