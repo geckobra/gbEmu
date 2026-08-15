@@ -533,13 +533,12 @@ int execute(uint8_t opcode){
             break;
 
         case 0x3F: {
-            uint8_t old_c = (cpu_registers.f >> 4) & 1;
+            uint8_t flags_mask = 0x00;
+            uint8_t old_c = (cpu_registers.f >> 4) & 1; //get value of old carry flag
             uint8_t z_flag = cpu_registers.f & (1 << 7);
+            uint8_t new_c = (old_c) ? 0 : 1;
 
-            cpu_registers.f = z_flag;               // Keep Z, clear N
-            if (old_c) cpu_registers.f |= (1 << 5); // H = old Carry
-            if (!old_c) cpu_registers.f |= (1 << 4); // Invert Carry
-
+            cpu_registers.f = z_flag | (new_c << 4);
             executed_t_ticks = 4;
             break;
         }
@@ -708,8 +707,8 @@ int execute(uint8_t opcode){
             break;
 
         case 0x5B:
-            //load the vlaue at regE into regE
-
+            //load the value at regE into regE
+            cpu_registers.e = cpu_registers.e;
             executed_t_ticks = 4;
             break;
 
@@ -1549,10 +1548,7 @@ int execute(uint8_t opcode){
             break;
 
         case 0xD1:
-            //POP 16 bits from the stack and store at DE
-            cpu_registers.e = read_memory(cpu_registers.sp++);
-            cpu_registers.d = read_memory(cpu_registers.sp++);
-
+            cpu_registers.de = pop(&cpu_registers.sp);
             executed_t_ticks = 12;
             break;
 
@@ -1594,12 +1590,7 @@ int execute(uint8_t opcode){
         }
 
         case 0xD5:
-            //PUSH regDE into the stack
-            cpu_registers.sp--;
-            write_memory(cpu_registers.sp, cpu_registers.d);
-            cpu_registers.sp--;
-            write_memory(cpu_registers.sp, cpu_registers.e);
-
+            push(&cpu_registers.sp, cpu_registers.de);
             executed_t_ticks = 16;
             break;
 
