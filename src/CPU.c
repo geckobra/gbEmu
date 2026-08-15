@@ -26,7 +26,7 @@ void run_cpu(){
 
     if (ei_delay > 0){
         ei_delay--;
-        if (ei_delay = 0){
+        if (ei_delay == 0){
             interrupts_enabled = true;
         }
     }
@@ -122,7 +122,7 @@ uint8_t inc_r8(uint8_t reg){
     uint8_t result = reg+1;
 
     if (result == 0) flags_mask |= 1 << 7;
-    if ((result & 0x0F) > 0x0F) flags_mask |= 1 << 5;
+    if ((result & 0x0F) == 0x0F) flags_mask |= 1 << 5;
 
     flags_mask |= (cpu_registers.f & (1 << 4)); //carry flag shouldn't be affected by the operation
 
@@ -278,11 +278,14 @@ uint8_t rlc_r8(uint8_t reg){
     //perform circular left rotation of reg
 
     //standard left circular byte rotation
-    uint8_t msb = reg & 0x80;
-    uint8_t result = (reg<<1) | (msb>>7);
+    uint8_t msb = (reg & 0x80) >> 7;
+    uint8_t result = (reg<<1) | msb;
 
-    if (result == 0) cpu_registers.f |= 1<<4;
-    cpu_registers.f = (msb >> 3); //set carry flag to the value of MSB
+    uint8_t flags_mask = 0x0;
 
+    if (result == 0) flags_mask |= (1 << 7);
+    if (msb)         flags_mask |= (1 << 4);
+
+    cpu_registers.f = flags_mask;
     return result;
 }
