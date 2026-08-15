@@ -136,6 +136,18 @@ int execute(uint8_t opcode){
             executed_t_ticks = 4;
             break;
 
+        case 0x10:
+            //STOP instruction -> enters VERY low power mode. Stops CPU and LCD until a button press occurs.
+            value = fetch(); //STOP is two bytes, the second always being 0x00 and unused.
+
+            //halt the CPU
+            isHalted = true;
+
+            executed_t_ticks = 4;
+
+            //currently the LCD controller is not implemented
+            break;
+
         case 0x11:{
             //load n16 value into regDE
             uint8_t l_val = fetch();
@@ -299,6 +311,32 @@ int execute(uint8_t opcode){
             cpu_registers.h = value;
             executed_t_ticks = 8;
             break;
+
+        case 0x27:{
+            //DAA instruction, to be used after performing arithmetic instruction
+            uint8_t adjustment = 0;
+
+            uint8_t hc_flag = (cpu_registers.f >> 5) & 1;
+            uint8_t c_flag = (cpu_registers.f >> 4) & 1;
+            uint8_t n_flag = (cpu_registers.f >> 6) & 1;
+            
+            if (hc_flag || (!n_flag && (cpu_registers.a & 0x0F) > 0x09)) adjustment |= 0x06;
+
+            if (c_flag || (!n_flag && (cpu_registers.a > 0x99))){
+                adjustment |= 0x60;
+                c_flag = true;
+            }
+
+            cpu_registers.a += n_flag ? -adjustment : adjustment;
+
+            uint8_t flags_mask = cpu_registers.f & (1 << 6);
+            if (cpu_registers.a == 0) flags_mask |= 1 << 7;
+            if (c_flag) flags_mask |= 1 << 4;
+
+            cpu_registers.f = flags_mask;
+            executed_t_ticks = 4;
+            break;
+        }
 
         case 0x28:{
             value = fetch();
@@ -1420,7 +1458,7 @@ int execute(uint8_t opcode){
             //return from subroutine, this is basically POP PC
             cpu_registers.pc = pop(&cpu_registers.sp);
 
-            executed_t_ticks = 4;
+            executed_t_ticks = 16;
             break;
 
         case 0xCA:{
@@ -1620,6 +1658,7 @@ int execute(uint8_t opcode){
             } else{
                 executed_t_ticks = 12;
             }
+            break;
         }
 
         case 0xDE:  
