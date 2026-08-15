@@ -3,12 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 
+uint8_t rom_memory[32768];
 static uint8_t work_ram[8192]; // WRAM (0xC000 - 0xDFFF)
 static uint8_t hram[127];      // HRAM (0xFF80 - 0xFFFE)
 static uint8_t io_registers[128];
-uint8_t rom_memory[32768];
-static uint8_t sb_reg = 0;
-static char serial_window[7] = "      ";
 
 static void print_rom_contents(const uint8_t* rom, uint16_t start_addr, uint16_t end_addr) {
     for (uint32_t i = start_addr; i <= end_addr; i += 16) {
@@ -44,7 +42,7 @@ int load_ROM(const char* path) {
         return -2;
     }
 
-    print_rom_contents(rom_memory, 0x0100, 0x7FFF);
+    //print_rom_contents(rom_memory, 0x0100, 0x7FFF);
     return 0;
 }
 
@@ -52,7 +50,6 @@ void mem_init(void) {
     memset(rom_memory, 0, sizeof(rom_memory));
     memset(work_ram, 0, sizeof(work_ram));
     memset(hram, 0, sizeof(hram));
-    sb_reg = 0;
 }
 
 uint8_t read_memory(uint16_t address) {
@@ -72,7 +69,6 @@ uint8_t read_memory(uint16_t address) {
         return io_registers[address - 0xFF00];
     }
     
-    // High RAM (HRAM)
     if (address >= 0xFF80 && address <= 0xFFFE) {
         return hram[address - 0xFF80];
     }
@@ -81,23 +77,6 @@ uint8_t read_memory(uint16_t address) {
 }
 
 void write_memory(uint16_t address, uint8_t value) {
-    if (address == 0xFF01) {
-        sb_reg = value;
-        return;
-    } 
-    if (address == 0xFF02) {
-        if (value == 0x81) {
-            char c = (char)sb_reg;
-            printf("%c", c);
-            fflush(stdout);
-
-            memmove(serial_window, serial_window + 1, 5);
-            serial_window[5] = c;
-            value = 0x01;
-        }
-        return;
-    }
-
     if (address >= ECHO_RAM_START && address <= ECHO_RAM_END) {
         address -= 0x2000;
     }
@@ -108,20 +87,10 @@ void write_memory(uint16_t address, uint8_t value) {
     }
 
     if (address >= 0xFF00 && address <= 0xFF7F) {
-        if (address == 0xFF01) {
-            sb_reg = value;
-        } else if (address == 0xFF02 && value == 0x81) {
-            char c = (char)sb_reg;
-            printf("%c", c);
-            fflush(stdout);
-            io_registers[0x02] = 0x01;
-            return;
-        }
         io_registers[address - 0xFF00] = value;
         return;
     }
 
-    // High RAM (HRAM)
     if (address >= 0xFF80 && address <= 0xFFFE) {
         hram[address - 0xFF80] = value;
         return;

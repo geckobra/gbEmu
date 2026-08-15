@@ -395,9 +395,8 @@ int execute(uint8_t opcode){
             break;
 
         case 0x2F:
-            //complement accumulator
-            cpu_registers.a = not();
-
+            cpu_registers.a = ~cpu_registers.a;
+            cpu_registers.f |= (1 << 6) | (1 << 5); // N = 1, H = 1
             executed_t_ticks = 4;
             break;
 
@@ -439,7 +438,7 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
 
-        case 0x34:
+        case 0x34:{
             //increment WRAM[regHL] and set corresponding flags
             uint8_t value = read_memory(cpu_registers.hl);
             value = inc_r8(value);
@@ -447,6 +446,7 @@ int execute(uint8_t opcode){
 
             executed_t_ticks = 12;
             break;
+        }
 
         case 0x35:
             //decrement WRAM[regHL] and set flags accordingly
@@ -532,15 +532,14 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
 
-        case 0x3F:{
-            //complement carry flag
+        case 0x3F: {
+            uint8_t old_c = (cpu_registers.f >> 4) & 1;
+            uint8_t z_flag = cpu_registers.f & (1 << 7);
 
-            uint8_t flags_mask = 0x0; //reset H and N flags
-            
-            flags_mask |= cpu_registers.f & (1 << 7); //keep zero flag
-            flags_mask |= (~cpu_registers.f & (1 << 4)); //invert value of carry flag
+            cpu_registers.f = z_flag;               // Keep Z, clear N
+            if (old_c) cpu_registers.f |= (1 << 5); // H = old Carry
+            if (!old_c) cpu_registers.f |= (1 << 4); // Invert Carry
 
-            cpu_registers.f = flags_mask;
             executed_t_ticks = 4;
             break;
         }
@@ -1001,7 +1000,7 @@ int execute(uint8_t opcode){
 
         case 0x8C:
             //add contents of regH to regA with carry
-            cpu_registers.a = alu_adc8(cpu_registers.h),
+            cpu_registers.a = alu_adc8(cpu_registers.h);
             executed_t_ticks = 4;
             break;
 
@@ -1898,6 +1897,10 @@ int execute(uint8_t opcode){
             executed_t_ticks = 16;
             break;
 
+
+        default:
+            printf("Unknown instruction!!! %4X\n", opcode);
+            break;
     }
 
     return executed_t_ticks;
