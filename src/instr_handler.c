@@ -546,7 +546,7 @@ int execute(uint8_t opcode){
     
         case 0x40:
             //load regB into regB
-
+            cpu_registers.b = cpu_registers.b;
             //load operation is not needed, just tick the PPU and APU for 4T-C
             executed_t_ticks = 4;
             break;
@@ -601,6 +601,7 @@ int execute(uint8_t opcode){
 
         case 0x49:
             //load regC into regC
+            cpu_registers.c = cpu_registers.c;
             executed_t_ticks = 4; //tick PPU and APU for 4T-C
             break;
 
@@ -654,7 +655,7 @@ int execute(uint8_t opcode){
 
         case 0x52:
             //load the contents of regD into regD
-
+            cpu_registers.d = cpu_registers.d;
             executed_t_ticks = 4;
             break;
 
@@ -1485,6 +1486,11 @@ int execute(uint8_t opcode){
 
             break;
         }
+
+        case 0xCB:
+            value = fetch();
+            executed_t_ticks = 4 + dispatch_cb(value); //4 ticks + ticks for CB operation
+            break;
 
         case 0xCC:{
             uint8_t addr_low = fetch();
