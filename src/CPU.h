@@ -41,8 +41,16 @@ uint8_t rr_r8(uint8_t);  //rotate a register right through carry flag
 uint8_t rl_r8(uint8_t);  //rotate a register left through carry flag
 uint8_t rlc_r8(uint8_t); //perform left circular rotation of a register
 uint8_t rrc_r8(uint8_t); //perform right circular rotation of a register
+uint8_t sla_r8(uint8_t); //shift left arithmetically a register
+uint8_t sra_r8(uint8_t); //shift right arithmetically a register
+uint8_t srl_r8(uint8_t); //shift right logically a register
+void bit_r8(uint8_t, uint8_t); //set zero flag if bit is not set
+uint8_t res_r8(uint8_t, uint8_t); //set specific bit to zero
+uint8_t set_r8(uint8_t, uint8_t);
+uint8_t swap(uint8_t);   //swap upper and lower 4 bits in a register
 
 void cpu_init();
 void run_cpu();
 int execute(uint8_t);
+int dispatch_cb(uint8_t); //function that exclusively handles CB prefixed instructions
 uint8_t fetch();

@@ -50,13 +50,13 @@ void run_cpu(){
 
 // ALU HELPER FUNCTIONS
 uint8_t alu_add8(uint8_t val){
-    uint8_t flags_mask = 0x0;
+    uint8_t flags_mask = 0x00;
     uint8_t a_val = cpu_registers.a;
 
     uint16_t result = (uint16_t)a_val + (uint16_t)val;
 
-    if ((uint8_t)result == 0)                 flags_mask |= 1 << 7;
-    if ((a_val & 0x0F) + (val & 0x0F) > 0x0F) flags_mask |= 1 << 5;
+    if ((uint8_t)result == 0)                  flags_mask |= 1 << 7;
+    if ((a_val & 0x0F) + (val & 0x0F) > 0x0F)  flags_mask |= 1 << 5;
     if (result > 0xFF)                         flags_mask |= 1 << 4;
     
     cpu_registers.f = flags_mask;
@@ -65,7 +65,7 @@ uint8_t alu_add8(uint8_t val){
 }
 
 uint8_t alu_adc8(uint8_t val){
-    uint8_t flags_mask = 0x0;
+    uint8_t flags_mask = 0x00;
     uint8_t a_val = cpu_registers.a;
 
     uint8_t carry_flag = (cpu_registers.f & (1<<4)) ? 1 : 0;
@@ -86,7 +86,7 @@ uint8_t alu_sub8(uint8_t val){
     
     uint8_t flags_mask = (1<<6);
     if (result == 0) flags_mask |= (1 << 7);
-    if (((a_val & 0x0F) < (val & 0x0F))) flags_mask |= (1 << 5);
+    if ((a_val & 0x0F) < (val & 0x0F)) flags_mask |= (1 << 5);
     if (val > a_val) flags_mask |= (1 << 4);
 
     cpu_registers.f = flags_mask;
@@ -253,5 +253,80 @@ uint8_t rlc_r8(uint8_t reg){
     if (msb)         flags_mask |= (1 << 4);
 
     cpu_registers.f = flags_mask;
+    return result;
+}
+
+uint8_t sla_r8(uint8_t reg){
+    uint8_t msb        = (reg & 0x80)>>7; //get most significant bit
+    uint8_t result     = reg << 1;
+    uint8_t flags_mask = 0x00;
+
+    if (result == 0) flags_mask |= (1<<7);
+    flags_mask |= (msb << 4); //set carry flag if accordingly
+
+    cpu_registers.f = flags_mask;
+    return result;
+}
+
+uint8_t sra_r8(uint8_t reg){
+    uint8_t lsb = (reg & 0x01); //get least significant bit to set carry flag
+    uint8_t msb = (reg & 0x80);
+    uint8_t result = (reg >> 1) | msb;
+    uint8_t flags_mask = 0x00;
+
+    if (result == 0) flags_mask |= (1<<7);
+    flags_mask |= (lsb << 4);
+
+    cpu_registers.f = flags_mask;
+    return result;
+}
+
+uint8_t srl_r8(uint8_t reg){
+    uint8_t flags_mask = 0x00;
+    uint8_t result = 0x00;
+    uint8_t lsb = reg & 0x01;
+    
+    result |= reg >> 1;
+
+    if (result == 0) flags_mask |= (1<<7);
+    flags_mask |= (lsb << 4);
+
+    cpu_registers.f = flags_mask;
+    return result;
+}
+
+uint8_t swap(uint8_t reg){
+    uint8_t reg_lo = reg & 0x0F;
+    uint8_t reg_hi = reg & 0xF0;
+
+    uint8_t res = (reg_lo << 4) | (reg_hi >> 4);
+
+    cpu_registers.f = 0x00; //reset al flags
+    if (res == 0) cpu_registers.f = (1 << 7); //set Z if result is zero
+
+    return res;
+}
+
+void bit_r8(uint8_t bit_pos, uint8_t reg){
+    uint8_t flags_mask = (cpu_registers.f & (1 << 4)); //preserve carry flag
+    uint8_t bit_val = ((reg >> bit_pos) & 1);          //shift the register by the bit_pos value and mask it
+
+    if (bit_val == 0) flags_mask |= (1 << 7);          //then set the zero flag if the bit is zero
+    flags_mask |= (1 << 5);
+
+    cpu_registers.f = flags_mask;
+}
+
+uint8_t res_r8(uint8_t bit_pos, uint8_t reg){
+    uint8_t mask = ~(1<<bit_pos); //create a mask with all 1s except the bit position that needs to be zero
+    uint8_t result = reg & mask;  //keeps old values and sets that specific bit to zero if it was 1
+
+    return result;
+}
+
+uint8_t set_r8(uint8_t bit_pos, uint8_t reg){
+    uint8_t mask = (1<<bit_pos); //create a mask with all 0s except the bit position that needs to be one
+    uint8_t result = reg | mask;  //keeps old values and sets that specific bit to one if it was zero
+
     return result;
 }
