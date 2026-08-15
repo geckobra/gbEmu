@@ -187,9 +187,11 @@ int execute(uint8_t opcode){
             break;
 
         case 0x18:
-            //jump to address n8
+            //relative jump to pc+offset @ n8
             value = fetch();
-            
+            cpu_registers.pc += (int8_t)value;
+
+            executed_t_ticks = 8;
 
             break;
 
@@ -241,6 +243,20 @@ int execute(uint8_t opcode){
             executed_t_ticks = 4;
             break;
 
+        case 0x20:{
+            value = fetch();
+            uint8_t zero_flag = cpu_registers.f >> 7 & 1;
+
+            if (zero_flag){
+                executed_t_ticks = 8;
+            } else{
+                cpu_registers.pc += (int8_t)value;
+                executed_t_ticks = 12;
+            }
+            
+            break;
+        }
+
         case 0x21:{
             //load n16 value into regHL
             uint8_t l_val = fetch();
@@ -283,6 +299,20 @@ int execute(uint8_t opcode){
             cpu_registers.h = value;
             executed_t_ticks = 8;
             break;
+
+        case 0x28:{
+            value = fetch();
+            uint8_t zero_flag = cpu_registers.f >> 7 & 1;
+
+            if (zero_flag){
+                cpu_registers.pc += (int8_t)value;
+                executed_t_ticks = 12;
+            } else{
+                executed_t_ticks = 8;
+            }
+
+            break;
+        }
 
         case 0x29:
             //add the contents of regHL and regHL
@@ -331,6 +361,21 @@ int execute(uint8_t opcode){
 
             executed_t_ticks = 4;
             break;
+
+        case 0x30:{
+            //jump to PC+e8 if flag C is not set
+            value = fetch();
+            uint8_t carry_flag = cpu_registers.f >> 4 & 1;
+
+            if (carry_flag){
+                executed_t_ticks = 8;
+            } else {
+                cpu_registers.pc += (int8_t)value;
+                executed_t_ticks = 12;
+            }
+
+            break;
+        }
 
         case 0x31:{
             //load n16 value into SP
@@ -388,6 +433,20 @@ int execute(uint8_t opcode){
 
             executed_t_ticks = 4;
             break;
+
+        case 0x38:{
+            value = fetch();
+            uint8_t carry_flag = cpu_registers.f >> 4 & 1;
+
+            if (carry_flag){
+                cpu_registers.pc += (int8_t)value;
+                executed_t_ticks = 12;
+            } else{
+                executed_t_ticks = 8;
+            }
+
+            break;
+        }
 
         case 0x39:
             //add the contents of regHL and regSP
