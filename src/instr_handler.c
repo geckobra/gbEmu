@@ -1398,6 +1398,12 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
 
+        case 0xC7:
+            push(&cpu_registers.sp, cpu_registers.pc);
+            cpu_registers.pc = 0x0000;
+            executed_t_ticks = 16;
+            break;
+
         case 0xC8:
             //return from subroutine if Z is set
 
@@ -1471,6 +1477,12 @@ int execute(uint8_t opcode){
             cpu_registers.a = alu_adc8(value);
             
             executed_t_ticks = 8;
+            break;
+
+        case 0xCF:
+            push(&cpu_registers.sp, cpu_registers.pc);
+            cpu_registers.pc = 0x0008;
+            executed_t_ticks = 16;
             break;
 
         case 0xD0:
@@ -1548,6 +1560,12 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
 
+        case 0xD7:
+            push(&cpu_registers.sp, cpu_registers.pc);
+            cpu_registers.pc = 0x10;
+            executed_t_ticks = 16;
+            break;
+
         case 0xD8:
             //return from subroutine if flag C is set
 
@@ -1612,6 +1630,12 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
 
+        case 0xDF:
+            push(&cpu_registers.sp, cpu_registers.pc);
+            cpu_registers.pc = 0x18;
+            executed_t_ticks = 16;
+            break;
+
         case 0xE0: {
             //write the contents of regA to HIGH WRAM[n8]
             value = fetch(); //get the address
@@ -1661,6 +1685,12 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
 
+        case 0xE7:
+            push(&cpu_registers.sp, cpu_registers.pc);
+            cpu_registers.pc = 0x20;
+            executed_t_ticks = 16;
+            break;
+
         case 0xE8:{
             //add e8 value to the stack pointer
             int8_t val = (int8_t)fetch();
@@ -1701,6 +1731,12 @@ int execute(uint8_t opcode){
             cpu_registers.a = xor_r8(value);
 
             executed_t_ticks = 8;
+            break;
+
+        case 0xEF:
+            push(&cpu_registers.sp, cpu_registers.pc);
+            cpu_registers.pc = 0x28;
+            executed_t_ticks = 16;
             break;
 
         case 0xF0: {
@@ -1755,6 +1791,12 @@ int execute(uint8_t opcode){
             executed_t_ticks = 8;
             break;
 
+        case 0xF7:
+            push(&cpu_registers.sp, cpu_registers.pc);
+            cpu_registers.pc = 0x30;
+            executed_t_ticks = 16;
+            break;
+
         case 0xF8:{
             //load SP + e8 into regHL
             int8_t val = (int8_t)fetch();
@@ -1801,6 +1843,12 @@ int execute(uint8_t opcode){
             comp_r8(value);
 
             executed_t_ticks = 8;
+            break;
+
+        case 0xFF:
+            push(&cpu_registers.sp, cpu_registers.pc);
+            cpu_registers.pc = 0x0038;
+            executed_t_ticks = 16;
             break;
 
     }
