@@ -32,3 +32,23 @@ void write_memory(uint16_t address, uint8_t value){
         work_ram[address - WORK_RAM_START] = value;
     }
 }
+
+void push(uint16_t* sp, uint16_t val){
+
+    uint8_t low = val & 0x00FF;
+    uint8_t high = (val >> 8) & 0xFF;
+
+    (*sp)--;
+    write_memory((*sp)--, high);
+    write_memory(*sp, low);
+}
+
+uint16_t pop(uint16_t* sp){
+
+    uint8_t low = read_memory((*sp)++);
+    uint8_t high = read_memory((*sp)++);
+
+    uint16_t val = ((uint16_t)high << 8) | low;
+
+    return val;
+}
