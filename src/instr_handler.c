@@ -1365,6 +1365,24 @@ int execute(uint8_t opcode){
             break;
         }
 
+        case 0xC4:{
+            uint8_t addr_low = fetch();
+            uint8_t addr_high = fetch();
+            uint16_t address = ((uint16_t)addr_high << 8) | addr_low;
+
+            uint8_t zero_flag = (cpu_registers.f >> 7) & 1;
+
+            if (zero_flag){
+                executed_t_ticks = 12;
+            } else{
+                push(&cpu_registers.sp, cpu_registers.pc);
+
+                cpu_registers.pc = address;
+                executed_t_ticks = 24;
+            }
+            break;
+        }
+
         case 0xC5:
             //PUSH regBC into the stack
             push(&cpu_registers.sp, cpu_registers.bc);
@@ -1417,6 +1435,36 @@ int execute(uint8_t opcode){
             break;
         }
 
+        case 0xCC:{
+            uint8_t addr_low = fetch();
+            uint8_t addr_high = fetch();
+            uint16_t address = ((uint16_t)addr_high << 8) | addr_low;
+
+            uint8_t zero_flag = (cpu_registers.f >> 7) & 1;
+
+            if (zero_flag){
+                push(&cpu_registers.sp, cpu_registers.pc);
+                cpu_registers.pc = address;
+                executed_t_ticks = 24;
+            } else{
+                executed_t_ticks = 12;
+            }
+
+            break;
+        }
+
+        case 0xCD:{
+            uint8_t addr_low = fetch();
+            uint8_t addr_high = fetch();
+            uint16_t address = ((uint16_t)addr_high << 8) | addr_low;
+
+            push(&cpu_registers.sp, cpu_registers.pc);
+            cpu_registers.pc = address;
+            executed_t_ticks = 24;
+
+            break;
+        }
+
         case 0xCE:
             //add n8 to regA with carry
             value = fetch();
@@ -1458,6 +1506,25 @@ int execute(uint8_t opcode){
             } else{
                 cpu_registers.pc = address;
                 executed_t_ticks = 16;
+            }
+
+            break;
+        }
+
+        case 0xD4:{
+            uint8_t addr_low = fetch();
+            uint8_t addr_high = fetch();
+            uint16_t address = ((uint16_t)addr_high << 8) | addr_low;
+
+            uint8_t carry_flag = (cpu_registers.f >> 4) & 1;
+
+            if (carry_flag){
+                executed_t_ticks = 12;
+            } else{
+                push(&cpu_registers.sp, cpu_registers.pc);
+
+                cpu_registers.pc = address;
+                executed_t_ticks = 24;
             }
 
             break;
@@ -1518,6 +1585,23 @@ int execute(uint8_t opcode){
             }
 
             break;
+        }
+
+        case 0xDC:{
+            uint8_t addr_low = fetch();
+            uint8_t addr_high = fetch();
+            uint16_t address = ((uint16_t)addr_high << 8) | addr_low;
+
+            uint8_t carry_flag = (cpu_registers.f >> 4) & 1;
+
+            if (carry_flag){
+                push(&cpu_registers.sp, cpu_registers.pc);
+
+                cpu_registers.pc = address;
+                executed_t_ticks = 24;
+            } else{
+                executed_t_ticks = 12;
+            }
         }
 
         case 0xDE:  
