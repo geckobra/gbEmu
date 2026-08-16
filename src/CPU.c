@@ -3,13 +3,16 @@
 #include <stdio.h>
 #include <string.h>
 
-sm83_registers_t cpu_registers = {};
 bool isHalted = false;
 bool interrupts_enabled = false;
-uint8_t ei_delay = 2;
+sm83_registers_t cpu_registers = {};
 
-uint8_t next_instruction = 0x0;
+uint8_t next_instruction = 0x00;
 uint64_t total_t_cycles = 0;
+
+uint8_t ei_delay = 2;
+static uint8_t IF_reg;
+static uint8_t IE_reg;
 
 void cpu_init(){
     cpu_registers.a = 0x01;
@@ -22,6 +25,9 @@ void cpu_init(){
     cpu_registers.l = 0x4D;
     cpu_registers.sp = 0xFFFE;
     cpu_registers.pc = 0x0100;
+
+    IF_reg = 0x00;
+    IE_reg = 0x00;
 }
 
 uint8_t fetch(){
