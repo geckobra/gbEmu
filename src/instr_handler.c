@@ -625,7 +625,6 @@ int execute(uint8_t opcode){
             break;
 
         case 0x3F: {
-            uint8_t flags_mask = 0x00;
             uint8_t old_c = (cpu_registers.f >> 4) & 1; //get value of old carry flag
             uint8_t z_flag = cpu_registers.f & (1 << 7);
             uint8_t new_c = (old_c) ? 0 : 1;
