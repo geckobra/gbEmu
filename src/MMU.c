@@ -7,6 +7,8 @@ uint8_t rom_memory[32768];
 static uint8_t work_ram[8192]; // WRAM (0xC000 - 0xDFFF)
 static uint8_t hram[127];      // HRAM (0xFF80 - 0xFFFE)
 static uint8_t io_registers[128];
+static uint8_t IE;
+static uint8_t IF;
 uint8_t sb_reg = 0;
 
 static void print_rom_contents(const uint8_t* rom, uint16_t start_addr, uint16_t end_addr) {
@@ -76,6 +78,9 @@ uint8_t read_memory(uint16_t address) {
         return hram[address - 0xFF80];
     }
 
+    if (address == 0xFF0F) return IF;
+    if (address == 0xFFFF) return IE;
+
     return 0x00;
 }
 
@@ -114,6 +119,9 @@ void write_memory(uint16_t address, uint8_t value) {
         hram[address - 0xFF80] = value;
         return;
     }
+
+    if (address == 0xFF0F) IF = value;
+    if (address == 0xFFFF) IE = value;
 }
 
 void push(uint16_t* sp, uint16_t val) {
