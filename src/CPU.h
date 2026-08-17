@@ -19,6 +19,7 @@ extern sm83_registers_t cpu_registers;
 extern bool isHalted;
 extern bool interrupts_enabled;
 extern uint8_t ei_delay;
+extern uint8_t wait_cpu_cycles;
 
 //8-BIT ARITHMETIC HELPER FUNCTIONS
 uint8_t alu_add8(uint8_t);              //performs addition to the accumulation register and sets corresponding flags

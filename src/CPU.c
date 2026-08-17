@@ -11,8 +11,33 @@ uint8_t next_instruction = 0x00;
 uint64_t total_t_cycles = 0;
 
 uint8_t ei_delay = 2;
-static uint8_t IF_reg;
-static uint8_t IE_reg;
+static uint8_t IF_byte;
+static uint8_t IE_byte;
+static uint8_t IR_src; //interrupt to be serviced with the most priority
+uint8_t wait_cpu_cycles = 0; //set this value to the number of M-cycles to be waited by the CPU for
+static bool waiting_for_interrupt = false;
+
+static bool wait_cpu(){
+    //returns true if the CPU is not performing operations in this iteration
+    return (wait_cpu_cycles > 0) ? true : false;
+}
+
+static void run_interrupts(){
+    if (wait_cpu()) return;
+
+    uint8_t handler_addr = 0x00;
+
+    switch (IR_src){
+        case 0x01: handler_addr = 0x40; break;
+        case 0x02: handler_addr = 0x48; break;
+        case 0x04: handler_addr = 0x50; break;
+        case 0x08: handler_addr = 0x58; break;
+        case 0x10: handler_addr = 0x60; break;
+    }
+
+    push(&cpu_registers.sp, cpu_registers.pc);
+    cpu_registers.pc = handler_addr;
+}
 
 void cpu_init(){
     cpu_registers.a = 0x01;
@@ -26,8 +51,8 @@ void cpu_init(){
     cpu_registers.sp = 0xFFFE;
     cpu_registers.pc = 0x0100;
 
-    IF_reg = 0x00;
-    IE_reg = 0x00;
+    IF_byte = 0x00;
+    IE_byte = 0x00;
 }
 
 uint8_t fetch(){
@@ -44,13 +69,46 @@ void run_cpu(){
         }
     }
 
-    if (isHalted) {
+    //printf("IE_byte %2x | IF_byte: %2x \n", IE_byte, IF_byte);
+    if (wait_cpu()){
+        wait_cpu_cycles--;
         t_cycles_executed = 4;
-    } else {
-        next_instruction = fetch();
-        t_cycles_executed = execute(next_instruction);
+
+        if (wait_cpu_cycles == 0 && waiting_for_interrupt){
+            waiting_for_interrupt = false;
+            run_interrupts();
+        }
+    } else if (isHalted){
+        t_cycles_executed = 4;
+    } else{
+        IE_byte = read_memory(0xFFFF);
+        IF_byte = read_memory(0XFF0F);
+
+        //if interrupts are enabled and some interrupt with a handler has ocurred, service that interruption
+        if (interrupts_enabled && (IE_byte & IF_byte & 0x1F)){
+            interrupts_enabled = false;
+            waiting_for_interrupt = true;
+            wait_cpu_cycles = 2;
+
+            for (size_t i = 0; i < 5; i++){
+                //check the bytes and exit the loop at the first interrupt source (which will be the one with the most priority)
+                if (IF_byte & (1 << i)){
+                    IF_byte &= ~(1 << i);
+                    IR_src = (1 << i);
+                    break;
+                }
+            }
+
+            //update the IF_byte in memory
+            write_memory(0xFF0F, IF_byte);
+            t_cycles_executed = 4;
+            wait_cpu_cycles--;
+        } else {
+            next_instruction = fetch();
+            t_cycles_executed = execute(next_instruction);
+        }
     }
-    
+
     total_t_cycles += t_cycles_executed;
 }
 
