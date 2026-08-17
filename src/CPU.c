@@ -5,6 +5,7 @@
 
 bool isHalted = false;
 bool interrupts_enabled = false;
+bool increment_PC = true;
 sm83_registers_t cpu_registers = {};
 
 uint8_t next_instruction = 0x00;
@@ -56,7 +57,17 @@ void cpu_init(){
 }
 
 uint8_t fetch(){
-    return read_memory(cpu_registers.pc++);
+    uint8_t val = read_memory(cpu_registers.pc);
+
+    //the sole purpose of this is to simulate the HALT bug
+    if (increment_PC){
+        cpu_registers.pc++;
+    } else if (!isHalted){
+        //PC is incremented again after HALT bug if the last instruction was not a HALT
+        increment_PC = true;
+    }
+    
+    return val;
 }
 
 void run_cpu(){
@@ -66,9 +77,17 @@ void run_cpu(){
         ei_delay--;
         if (ei_delay == 0){
             interrupts_enabled = true;
+            isHalted = false; //when IME is set, the CPU stops being halted
         }
     }
 
+    if (isHalted && (IE_byte & IF_byte)){
+        //CPU stops HALT when an interrupt is pending
+        isHalted = false;
+        
+        if (!interrupts_enabled) increment_PC = false; //HALT bug -> if HALT is executed, IME = 0 and IE & IF != 0, PC is not incremented
+    }
+    
     //printf("IE_byte %2x | IF_byte: %2x \n", IE_byte, IF_byte);
     if (wait_cpu()){
         wait_cpu_cycles--;
