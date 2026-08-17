@@ -34,8 +34,6 @@ int execute(uint8_t opcode){
     int executed_t_ticks = 0;
     uint8_t value = 0; //8 bit value to extract from the instruction
     uint8_t reg_bits = opcode & 0x07;
-    uint8_t operand = get_operand(reg_bits);
-    uint8_t dest = (opcode >> 3)& 0x07; //get destiny register
 
     if (opcode == 0x76){
         //HALT isntruction is in the middle of the LD quadrant
@@ -44,6 +42,8 @@ int execute(uint8_t opcode){
         return executed_t_ticks;
     } else if ((opcode & 0xC0) == 0x40){
         //LOAD instructions write directly to destiny register
+        uint8_t operand = get_operand(reg_bits);
+        uint8_t dest = (opcode >> 3)& 0x07; //get destiny register
         write_result(operand, dest);
 
         executed_t_ticks = ((reg_bits == 6) || (dest == 6)) ? 8 : 4;
@@ -52,6 +52,7 @@ int execute(uint8_t opcode){
 
     //if the operation belongs to the ALU quadrant
     if ((opcode & 0xC0) == 0x80){
+        uint8_t operand = get_operand(reg_bits);
         uint8_t alu_op = (opcode >> 3) & 0x07; //ALU operation is encoded in the bits 5, 4 and 3
         switch (alu_op){
             case 0x0:
@@ -94,6 +95,8 @@ int execute(uint8_t opcode){
                 executed_t_ticks = (reg_bits == 6) ? 8 : 4;
                 break;
         }
+
+        return executed_t_ticks;
     }
 
     switch(opcode){
