@@ -92,7 +92,7 @@ void run_cpu(){
 
             for (size_t i = 0; i < 5; i++){
                 //check the bytes and exit the loop at the first interrupt source (which will be the one with the most priority)
-                if (IF_byte & (1 << i)){
+                if ((IE_byte & IF_byte) & (1 << i)){
                     IF_byte &= ~(1 << i);
                     IR_src = (1 << i);
                     break;
