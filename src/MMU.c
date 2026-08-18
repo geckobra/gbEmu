@@ -1,15 +1,28 @@
 #include "MMU.h"
+#include "timers.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 uint8_t rom_memory[32768];
 static uint8_t work_ram[8192]; // WRAM (0xC000 - 0xDFFF)
-static uint8_t hram[127];      // HRAM (0xFF80 - 0xFFFE)
+static uint8_t hram[127];       // HRAM (0xFF80 - 0xFFFE)
 static uint8_t io_registers[128];
-static uint8_t IE;
 static uint8_t IF;
+static uint8_t IE;
 uint8_t sb_reg = 0;
+
+uint8_t mmu_get_if(void) {
+    return IF;
+}
+
+void mmu_set_if(uint8_t value) {
+    IF = value & 0x1F;
+}
+
+uint8_t mmu_get_ie(void) {
+    return IE;
+}
 
 static void print_rom_contents(const uint8_t* rom, uint16_t start_addr, uint16_t end_addr) {
     for (uint32_t i = start_addr; i <= end_addr; i += 16) {
@@ -45,7 +58,6 @@ int load_ROM(const char* path) {
         return -2;
     }
 
-    //print_rom_contents(rom_memory, 0x0100, 0x7FFF);
     return 0;
 }
 
@@ -54,21 +66,32 @@ void mem_init(void) {
     memset(work_ram, 0, sizeof(work_ram));
     memset(hram, 0, sizeof(hram));
     sb_reg = 0;
+    IF = 0;
+    IE = 0;
 }
 
 uint8_t read_memory(uint16_t address) {
+    tick_timers(4);
 
     if (address <= 0x7FFF) {
         return rom_memory[address];
     }
 
     if (address >= ECHO_RAM_START && address <= ECHO_RAM_END) {
-        address -= 0x2000; //Translate Echo RAM to WRAM
+        address -= 0x2000; 
     }
 
     if (address >= WORK_RAM_START && address <= WORK_RAM_END) {
         return work_ram[address - WORK_RAM_START];
     }
+
+    // Intercept DIV and TIMA reads
+    if (address == 0xFF04) return get_DIV();
+    if (address == 0xFF05) return get_TIMA();
+
+    // Intercept IF and IE reads
+    if (address == 0xFF0F) return IF;
+    if (address == 0xFFFF) return IE;
 
     if (address >= 0xFF00 && address <= 0xFF7F) {
         return io_registers[address - 0xFF00];
@@ -78,18 +101,17 @@ uint8_t read_memory(uint16_t address) {
         return hram[address - 0xFF80];
     }
 
-    if (address == 0xFF0F) return IF;
-    if (address == 0xFFFF) return IE;
-
     return 0x00;
 }
 
 void write_memory(uint16_t address, uint8_t value) {
-
+    tick_timers(4);
+    
     if (address == 0xFF01) {
         sb_reg = value;
         return;
-    } 
+    }
+
     if (address == 0xFF02) {
         if (value == 0x81) {
             char c = (char)sb_reg;
@@ -101,9 +123,18 @@ void write_memory(uint16_t address, uint8_t value) {
         return;
     }
 
-    if (address == 0XFF04){
-        //writing any value to DIV register resets the clock to 0x00
-        io_registers[address - 0xFF00] = 0x00;
+    if (address == 0xFF04) {
+        reset_DIV();
+        return;
+    }
+
+    if (address == 0xFF0F) {
+        IF = value & 0x1F; // Only lower 5 bits are used in GB
+        return;
+    }
+    if (address == 0xFFFF) {
+        IE = value;
+        return;
     }
 
     if (address >= ECHO_RAM_START && address <= ECHO_RAM_END) {
@@ -117,6 +148,13 @@ void write_memory(uint16_t address, uint8_t value) {
 
     if (address >= 0xFF00 && address <= 0xFF7F) {
         io_registers[address - 0xFF00] = value;
+
+        if (address == 0xFF07 || address == 0xFF06){
+            uint8_t clk_enable = (io_registers[0xFF07 - 0xFF00] >> 2) & 1;
+            uint8_t clk_freq = (io_registers[0XFF07 - 0XFF00] & 0x03);
+            uint8_t overflow_val = (io_registers[0XFF06 - 0XFF00]);
+            update_timer_settings(clk_enable, clk_freq, overflow_val);
+        }
         return;
     }
 
@@ -124,9 +162,6 @@ void write_memory(uint16_t address, uint8_t value) {
         hram[address - 0xFF80] = value;
         return;
     }
-
-    if (address == 0xFF0F) IF = value;
-    if (address == 0xFFFF) IE = value;
 }
 
 void push(uint16_t* sp, uint16_t val) {

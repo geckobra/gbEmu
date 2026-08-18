@@ -13,5 +13,9 @@ void mem_init();
 uint8_t read_memory(uint16_t);
 void write_memory(uint16_t, uint8_t);
 
+void mmu_set_if(uint8_t);
+uint8_t mmu_get_if();
+uint8_t mmu_get_ie();
+
 uint16_t pop(uint16_t*);
 void push(uint16_t*, uint16_t);
