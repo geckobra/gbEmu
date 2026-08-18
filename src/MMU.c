@@ -71,8 +71,6 @@ void mem_init(void) {
 }
 
 uint8_t read_memory(uint16_t address) {
-    tick_timers(4);
-
     if (address <= 0x7FFF) {
         return rom_memory[address];
     }
@@ -104,9 +102,7 @@ uint8_t read_memory(uint16_t address) {
     return 0x00;
 }
 
-void write_memory(uint16_t address, uint8_t value) {
-    tick_timers(4);
-    
+void write_memory(uint16_t address, uint8_t value) { 
     if (address == 0xFF01) {
         sb_reg = value;
         return;
@@ -125,6 +121,11 @@ void write_memory(uint16_t address, uint8_t value) {
 
     if (address == 0xFF04) {
         reset_DIV();
+        return;
+    }
+
+    if (address == 0xFF05) {
+        set_TIMA(value);
         return;
     }
 
