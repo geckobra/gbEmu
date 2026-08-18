@@ -45,7 +45,7 @@ int load_ROM(const char* path) {
         return -2;
     }
 
-    print_rom_contents(rom_memory, 0x0100, 0x7FFF);
+    //print_rom_contents(rom_memory, 0x0100, 0x7FFF);
     return 0;
 }
 
@@ -99,6 +99,11 @@ void write_memory(uint16_t address, uint8_t value) {
             value = 0x01;
         }
         return;
+    }
+
+    if (address == 0XFF04){
+        //writing any value to DIV register resets the clock to 0x00
+        io_registers[address - 0xFF00] = 0x00;
     }
 
     if (address >= ECHO_RAM_START && address <= ECHO_RAM_END) {
