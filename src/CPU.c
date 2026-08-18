@@ -24,12 +24,6 @@ static bool wait_cpu(){
     return (wait_cpu_cycles > 0) ? true : false;
 }
 
-void set_timer_IR(){
-    //set interrupt source for TIMA timer
-    IF_byte |= (1 << 2);
-    write_memory(0XFF0F, IF_byte);
-}
-
 static void run_interrupts(){
     if (wait_cpu()) return;
 
@@ -82,6 +76,9 @@ uint8_t fetch(){
 void run_cpu(){
     int t_cycles_executed = 0;
 
+    IE_byte = mmu_get_ie();
+    IF_byte = mmu_get_if();
+
     if (ei_delay > 0){
         ei_delay--;
         if (ei_delay == 0){
@@ -109,8 +106,6 @@ void run_cpu(){
     } else if (isHalted){
         t_cycles_executed = 4;
     } else{
-        IE_byte = read_memory(0xFFFF);
-        IF_byte = read_memory(0XFF0F);
 
         //if interrupts are enabled and some interrupt with a handler has ocurred, service that interruption
         if (interrupts_enabled && (IE_byte & IF_byte & 0x1F)){
@@ -133,13 +128,14 @@ void run_cpu(){
             wait_cpu_cycles--;
         } else {
             next_instruction = fetch();
+            //printf("Running %2X\n", next_instruction);
             t_cycles_executed = execute(next_instruction);
         }
     }
 
     total_t_cycles += t_cycles_executed;
 
-    tick_timers(total_t_cycles);
+    tick_timers(t_cycles_executed);
 }
 
 // ALU HELPER FUNCTIONS

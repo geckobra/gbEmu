@@ -49,8 +49,6 @@ void bit_r8(uint8_t, uint8_t); //set zero flag if bit is not set
 uint8_t res_r8(uint8_t, uint8_t); //set specific bit to zero
 uint8_t set_r8(uint8_t, uint8_t);
 uint8_t swap(uint8_t);   //swap upper and lower 4 bits in a register
-void set_timer_IR();
-
 
 void cpu_init();
 void run_cpu();
