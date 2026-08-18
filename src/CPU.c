@@ -1,5 +1,6 @@
 #include "CPU.h"
 #include "MMU.h"
+#include "timers.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -21,6 +22,12 @@ static bool waiting_for_interrupt = false;
 static bool wait_cpu(){
     //returns true if the CPU is not performing operations in this iteration
     return (wait_cpu_cycles > 0) ? true : false;
+}
+
+void set_timer_IR(){
+    //set interrupt source for TIMA timer
+    IF_byte |= (1 << 2);
+    write_memory(0XFF0F, IF_byte);
 }
 
 static void run_interrupts(){
@@ -54,6 +61,8 @@ void cpu_init(){
 
     IF_byte = 0x00;
     IE_byte = 0x00;
+
+    timers_init();
 }
 
 uint8_t fetch(){
@@ -129,6 +138,8 @@ void run_cpu(){
     }
 
     total_t_cycles += t_cycles_executed;
+
+    tick_timers(total_t_cycles);
 }
 
 // ALU HELPER FUNCTIONS
