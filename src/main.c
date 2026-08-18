@@ -3,7 +3,7 @@
 #include "MMU.h"
 
 int main(int argc, char* argv[]){
-    printf("Hello, world!\n");
+    printf("Running Gameboy Emulator!\n");
 
     if (argc < 2){
         printf("No ROM provided, terminating\n");
