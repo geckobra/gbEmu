@@ -294,7 +294,7 @@ int execute(uint8_t opcode){
             value = fetch();
             cpu_registers.pc += (int8_t)value;
 
-            executed_t_ticks = 8;
+            executed_t_ticks = 12;
 
             break;
 
@@ -764,7 +764,7 @@ int execute(uint8_t opcode){
 
         case 0xCB:
             value = fetch();
-            executed_t_ticks = 4 + dispatch_cb(value); //4 ticks + ticks for CB operation
+            executed_t_ticks = dispatch_cb(value); //4 ticks + ticks for CB operation
             break;
 
         case 0xCC:{
