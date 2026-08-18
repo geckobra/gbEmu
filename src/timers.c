@@ -20,6 +20,10 @@ typedef struct{
 TIMA_cfg_t timer_cfg;
 timer_data_t timers;
 
+void set_TIMA(uint8_t value) {
+    timers.TIMA = value;
+}
+
 uint8_t get_DIV() {
     return timers.DIV;
 }
@@ -52,7 +56,6 @@ void timers_init(){
 }
 
 void tick_timers(uint8_t t_cycles){
-    //read TIMA clock settings before ticking it
     uint8_t m_cycles = t_cycles / 4;
     if (m_cycles == 0) m_cycles = 1;
 

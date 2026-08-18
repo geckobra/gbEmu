@@ -6,3 +6,4 @@ void update_timer_settings(uint8_t, uint8_t, uint8_t);
 uint8_t get_DIV();
 uint8_t get_TIMA();
 void reset_DIV();
+void set_TIMA(uint8_t);
