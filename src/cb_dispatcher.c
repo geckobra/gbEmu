@@ -1,5 +1,6 @@
 #include "CPU.h"
 #include "MMU.h"
+#include "timers.h"
 
 uint8_t get_cb_operand(uint8_t reg_bits) {
     switch (reg_bits & 0x07) {
@@ -9,7 +10,7 @@ uint8_t get_cb_operand(uint8_t reg_bits) {
         case 3: return cpu_registers.e;
         case 4: return cpu_registers.h;
         case 5: return cpu_registers.l;
-        case 6: return read_memory((cpu_registers.h << 8) | cpu_registers.l); // [HL]
+        case 6: tick_timers(4); return read_memory((cpu_registers.h << 8) | cpu_registers.l); // [HL]
         case 7: return cpu_registers.a;
     }
     return 0;
@@ -23,7 +24,7 @@ void write_cb_operand(uint8_t reg_bits, uint8_t val) {
         case 3: cpu_registers.e = val; break;
         case 4: cpu_registers.h = val; break;
         case 5: cpu_registers.l = val; break;
-        case 6: write_memory((cpu_registers.h << 8) | cpu_registers.l, val); break; // [HL]
+        case 6: tick_timers(4); write_memory((cpu_registers.h << 8) | cpu_registers.l, val); break; // [HL]
         case 7: cpu_registers.a = val; break;
     }
 }
@@ -39,21 +40,22 @@ int dispatch_cb(uint8_t instruction){
     if (operation_type >= 0x08 && operation_type <= 0x0F) {
         uint8_t bit_pos = (instruction >> 3) & 0x07;
         bit_r8(bit_pos, operand);
-        return (reg_bits == 6) ? 12 : 8;
+        // return (reg_bits == 6) ? 12 : 8;
+        return 8;
     }
 
     if (operation_type >= 0x10 && operation_type <= 0x17) {
         uint8_t bit_pos = (instruction >> 3) & 0x07;
         result = res_r8(bit_pos, operand);
         write_cb_operand(reg_bits, result);
-        return (reg_bits == 6) ? 16 : 8;
+        return 8;
     }
 
     if (operation_type >= 0x18 && operation_type <= 0x1F) {
         uint8_t bit_pos = (instruction >> 3) & 0x07;
         result = set_r8(bit_pos, operand);
         write_cb_operand(reg_bits, result);
-        return (reg_bits == 6) ? 16 : 8;
+        return 8;
     }
 
     switch (operation_type){
@@ -68,7 +70,7 @@ int dispatch_cb(uint8_t instruction){
     }
 
     write_cb_operand(reg_bits, result);
-    executed_t_ticks = (reg_bits== 6) ? 16 : 8;
+    executed_t_ticks = 8;
 
     return executed_t_ticks;
 }

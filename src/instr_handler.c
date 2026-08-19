@@ -1,5 +1,6 @@
 #include "CPU.h"
 #include "MMU.h"
+#include "timers.h"
 
 uint8_t get_operand(uint8_t reg_bits){
     switch (reg_bits & 0x07){
@@ -533,27 +534,33 @@ int execute(uint8_t opcode){
         case 0x34:{
             //increment WRAM[regHL] and set corresponding flags
             uint8_t value = read_memory(cpu_registers.hl);
+            tick_timers(4);
             value = inc_r8(value);
             write_memory(cpu_registers.hl, value);
+            tick_timers(4);
 
-            executed_t_ticks = 12;
+            executed_t_ticks = 4;
             break;
         }
 
         case 0x35:
             //decrement WRAM[regHL] and set flags accordingly
             value = read_memory(cpu_registers.hl);
+            tick_timers(4);
             value = dec_r8(value);
             write_memory(cpu_registers.hl, value);
+            tick_timers(4);
 
-            executed_t_ticks = 12;
+            executed_t_ticks = 4;
             break;
 
         case 0x36:
             //write n8 value into WRAM[regHL]
             value = fetch();
+            tick_timers(4);
             write_memory(cpu_registers.hl, value);
-            executed_t_ticks  = 12;
+            tick_timers(4);
+            executed_t_ticks  = 4;
             break;
 
         case 0x37:{
@@ -958,13 +965,13 @@ int execute(uint8_t opcode){
         case 0xE0: {
             //write the contents of regA to HIGH WRAM[n8]
             value = fetch(); //get the address
-
+            tick_timers(4);
             //the address is encoded as the 8-bit low byte and assumes high byte of $FF
             uint16_t address = 0xFF00;
             address = address | (uint16_t)value;
-
             write_memory(address, cpu_registers.a);
-            executed_t_ticks = 12;
+            tick_timers(4);
+            executed_t_ticks = 4;
             break;
         }
 
@@ -1037,19 +1044,23 @@ int execute(uint8_t opcode){
         case 0xEA:{
             //write the contents of regA to WRAM[n16]
             uint8_t l_val = fetch();
+            tick_timers(4);
             uint8_t h_val = fetch();
+            tick_timers(4);
             uint16_t res_address = ((uint16_t)h_val << 8) | l_val;
             write_memory(res_address, cpu_registers.a);
-            executed_t_ticks = 16;
+            tick_timers(4);
+            executed_t_ticks = 4;
             break;
         }
 
         case 0xEE:
             //set the contents of regA to regA ^ n8
             value = fetch();
+            tick_timers(4);
             cpu_registers.a = xor_r8(value);
 
-            executed_t_ticks = 8;
+            executed_t_ticks = 4;
             break;
 
         case 0xEF:
@@ -1061,10 +1072,12 @@ int execute(uint8_t opcode){
         case 0xF0: {
             //load the contents at HIGH WRAM[n8] into regA
             value = fetch();
+            tick_timers(4);
             uint16_t address = 0xFF00;
             address = address | (uint16_t)value;
             cpu_registers.a = read_memory(address);
-            executed_t_ticks = 12;
+            tick_timers(4);
+            executed_t_ticks = 4;
             break;
         }
 
@@ -1141,11 +1154,14 @@ int execute(uint8_t opcode){
         case 0xFA:{
             //load the contents at WRAM[n16] into regA
             uint8_t l_val = fetch();
+            tick_timers(4);
             uint8_t h_val = fetch();
+            tick_timers(4);
             uint16_t address = ((uint16_t)h_val<<8) | l_val;
             cpu_registers.a = read_memory(address);
+            tick_timers(4);
 
-            executed_t_ticks = 16;
+            executed_t_ticks = 4;
             break;
         }
 
