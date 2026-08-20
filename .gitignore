@@ -1,3 +1,6 @@
 /.vscode
 *.out
 *.gb
+
+#ignore the binary file
+gameboy 
