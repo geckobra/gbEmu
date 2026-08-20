@@ -5,8 +5,8 @@
 #include <string.h>
 
 uint8_t rom_memory[32768];
-static uint8_t work_ram[8192]; // WRAM (0xC000 - 0xDFFF)
-static uint8_t hram[127];       // HRAM (0xFF80 - 0xFFFE)
+static uint8_t work_ram[8192];       // WRAM (0xC000 - 0xDFFF)
+static uint8_t hram[127];            // HRAM (0xFF80 - 0xFFFE)
 static uint8_t io_registers[128];
 static uint8_t IF;
 static uint8_t IE;
@@ -24,77 +24,56 @@ uint8_t mmu_get_ie(void) {
     return IE;
 }
 
-static void print_rom_contents(const uint8_t* rom, uint16_t start_addr, uint16_t end_addr) {
-    for (uint32_t i = start_addr; i <= end_addr; i += 16) {
-        printf("0x%04X:  ", i);
-        for (uint32_t j = 0; j < 16; j++) {
-            if (i + j <= end_addr) {
-                printf("%02X ", rom[i + j]);
-            } else {
-                printf("   ");
-            }
-        }
-        printf(" ");
-        for (uint32_t j = 0; j < 16; j++) {
-            if (i + j <= end_addr) {
-                uint8_t byte = rom[i + j];
-                printf("%c", (byte >= 32 && byte <= 126) ? byte : '.');
-            }
-        }
-        printf("\n");
-    }
-}
-
 int load_ROM(const char* path) {
     FILE* ROM = fopen(path, "rb");
-    if (ROM == NULL) {
-        return -1;
-    }
+    if (ROM == NULL) return -1;
 
     size_t bytes_read = fread(rom_memory, sizeof(uint8_t), sizeof(rom_memory), ROM);
     fclose(ROM);
 
-    if (bytes_read == 0) {
-        return -2;
-    }
-
-    return 0;
+    return (bytes_read == 0) ? -2 : 0;
 }
 
 void mem_init(void) {
     memset(rom_memory, 0, sizeof(rom_memory));
     memset(work_ram, 0, sizeof(work_ram));
     memset(hram, 0, sizeof(hram));
+    memset(io_registers, 0, sizeof(io_registers));
     sb_reg = 0;
     IF = 0;
     IE = 0;
 }
 
 uint8_t read_memory(uint16_t address) {
+    //ROM Region
     if (address <= 0x7FFF) {
         return rom_memory[address];
     }
 
+    //Echo RAM mapping normalization
     if (address >= ECHO_RAM_START && address <= ECHO_RAM_END) {
-        address -= 0x2000; 
+        address -= 0x2000;
     }
 
+    //Working RAM Region
     if (address >= WORK_RAM_START && address <= WORK_RAM_END) {
         return work_ram[address - WORK_RAM_START];
     }
 
-    // Intercept DIV and TIMA reads
-    if (address == 0xFF04) return get_DIV();
-    if (address == 0xFF05) return get_TIMA();
+    //Special Register Interceptions
+    switch (address) {
+        case 0xFF04: return get_DIV();
+        case 0xFF05: return get_TIMA();
+        case 0xFF0F: return IF;
+        case 0xFFFF: return IE;
+    }
 
-    // Intercept IF and IE reads
-    if (address == 0xFF0F) return IF;
-    if (address == 0xFFFF) return IE;
-
+    //I/O Registers Region
     if (address >= 0xFF00 && address <= 0xFF7F) {
         return io_registers[address - 0xFF00];
     }
     
+    //High RAM (HRAM) Region
     if (address >= 0xFF80 && address <= 0xFFFE) {
         return hram[address - 0xFF80];
     }
@@ -103,62 +82,57 @@ uint8_t read_memory(uint16_t address) {
 }
 
 void write_memory(uint16_t address, uint8_t value) { 
-    if (address == 0xFF01) {
-        sb_reg = value;
-        return;
+    //Special Register Side-Effects & Interceptions
+    switch (address) {
+        case 0xFF01:
+            sb_reg = value;
+            return;
+        case 0xFF02:
+            if (value == 0x81) {
+                putchar((char)sb_reg);
+                fflush(stdout);
+            }
+            return;
+        case 0xFF04:
+            reset_DIV();
+            return;
+        case 0xFF05:
+            set_TIMA(value);
+            return;
+        case 0xFF0F:
+            IF = value & 0x1F; //Only lower 5 bits used
+            return;
+        case 0xFFFF:
+            IE = value;
+            return;
     }
 
-    if (address == 0xFF02) {
-        if (value == 0x81) {
-            char c = (char)sb_reg;
-            printf("%c", c);
-            fflush(stdout);
-
-            value = 0x01;
-        }
-        return;
-    }
-
-    if (address == 0xFF04) {
-        reset_DIV();
-        return;
-    }
-
-    if (address == 0xFF05) {
-        set_TIMA(value);
-        return;
-    }
-
-    if (address == 0xFF0F) {
-        IF = value & 0x1F; // Only lower 5 bits are used in GB
-        return;
-    }
-    if (address == 0xFFFF) {
-        IE = value;
-        return;
-    }
-
+    //Echo RAM mapping normalization
     if (address >= ECHO_RAM_START && address <= ECHO_RAM_END) {
         address -= 0x2000;
     }
 
+    //Working RAM Region
     if (address >= WORK_RAM_START && address <= WORK_RAM_END) {
         work_ram[address - WORK_RAM_START] = value;
         return;
     }
 
+    //I/O Registers Region
     if (address >= 0xFF00 && address <= 0xFF7F) {
         io_registers[address - 0xFF00] = value;
 
-        if (address == 0xFF07 || address == 0xFF06){
-            uint8_t clk_enable = (io_registers[0xFF07 - 0xFF00] >> 2) & 1;
-            uint8_t clk_freq = (io_registers[0XFF07 - 0XFF00] & 0x03);
-            uint8_t overflow_val = (io_registers[0XFF06 - 0XFF00]);
+        //timer config tracking
+        if (address == 0xFF07 || address == 0xFF06) {
+            uint8_t clk_enable  = (io_registers[0xFF07 - 0xFF00] >> 2) & 1;
+            uint8_t clk_freq    = (io_registers[0xFF07 - 0xFF00] & 0x03);
+            uint8_t overflow_val = io_registers[0xFF06 - 0xFF00];
             update_timer_settings(clk_enable, clk_freq, overflow_val);
         }
         return;
     }
 
+    //High RAM (HRAM) Region
     if (address >= 0xFF80 && address <= 0xFFFE) {
         hram[address - 0xFF80] = value;
         return;
